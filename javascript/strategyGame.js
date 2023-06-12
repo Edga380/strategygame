@@ -17,7 +17,23 @@ const buildingArray = [];
 const buildableArea = [];
 var tileLocOnTileMapImgX = 60;
 var tileLocOnTileMapImgY = 0;
-//DrawMap variables
+//Building class
+class BuildingObjects {
+    constructor(src, width, height, x, y, tag){
+        this.image = new Image();
+        this.image.src = src;
+        this.width = width;
+        this.height = height;
+        this.x = x;
+        this.y = y;
+        this.tag = tag;
+    }
+
+    draw(){
+        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    }
+}
+//DrawMap class
 class MapTilesObj {
     constructor(width, height, xPos, yPos, XPosOnTileMap, YPosOnTileMap, tileSizeXAxis, tileSizeYAxis, src){
         this.width = width;
@@ -48,6 +64,9 @@ var solarPanel = new Image();
 var solarPanelTransparent = new Image();
 var vehiclePlant = new Image();
 var soldierBaracks = new Image();
+//Information text
+var informationText = [];
+var yCoordinate = 20;
 //Draw select rectangle variables
 var drawSelect = false;
 //
@@ -66,7 +85,7 @@ function gameLoop(){
     drawMap();
     drawBuildings();
     //Layer02
-    DrawSelectRect();
+    DrawRectangleToSelectArmyUnits();
     PickAndDropBuilding();
     //Layer03
     //Layer04
@@ -113,10 +132,22 @@ function GetDarkBrownTilesLocations(){
             buildableArea.push({x : mapTilesArray[i].xPos, y : mapTilesArray[i].yPos});
         }
     }
-    console.log(buildableArea);
+};
+function InformationTextDisplay(){
+    for (let i = 0; i < informationText.length; i++) {
+        if(informationText.length >= 6){
+            informationText.shift();
+        }
+        ctx.fillStyle = informationText[i].color;
+        ctx.font = "15px Arial";
+        ctx.fillText(informationText[i].string, 10, yCoordinate * (i + 1));
+    }
 };
 //UI
+//
 function DrawUIElements(){
+    //Information text
+    InformationTextDisplay();
     //Player cash
     ctx.fillStyle = "white";
     ctx.font = "25px Arial";
@@ -177,9 +208,16 @@ function mouseDownHandler(event) {
             console.log("Solar panel");
         }
         else if(pickDropSolarPanel == true){
-            const mapTileObjects = new MapTilesObj(32, 32, mouseCurrentPosX - 15, mouseCurrentPosY - 15, 0, 0, 32, 32, "./images/tileMap/solarPanel.png");
-            buildingArray.push(mapTileObjects);
-            pickDropSolarPanel = false;
+            if(CheckIfYouAreOverBuildableArea()){
+                const buildingObject = new BuildingObjects("./images/tileMap/solarPanel.png", 32, 32, mouseCurrentPosX - 15, mouseCurrentPosY - 15, "solarPanel");
+                buildingArray.push(buildingObject);
+                console.log(buildingObject);
+                pickDropSolarPanel = false;
+                informationText.push({string: "Built!", color: "green"});
+            }
+            else{
+                informationText.push({string: "You can't build here!", color: "red"});
+            }
         }
         else{
             mousePreviousPosX = mouseX;
@@ -188,6 +226,7 @@ function mouseDownHandler(event) {
         }
     }
 };
+console.log(buildingArray);
 //Mouse movement on canvas
 canvas.addEventListener("mousemove", mouseMoveHandler, false);
 function mouseMoveHandler(event) {
@@ -227,8 +266,8 @@ function mouseUpHandler(event) {
 };
 //
 function PickAndDropBuilding(){
-    if(pickDropSolarPanel == true){
-        if(0)
+    if(pickDropSolarPanel == true){       
+        if(CheckIfYouAreOverBuildableArea())
         {
             ctx.fillStyle = "green";
         }
@@ -240,8 +279,22 @@ function PickAndDropBuilding(){
         ctx.drawImage(solarPanelTransparent, mouseCurrentPosX - 15, mouseCurrentPosY - 15, 32, 32);
     }
 };
+function CheckIfYouAreOverBuildableArea(){
+    for (let i = 0; i < buildableArea.length; i++) {
+        if(buildableArea[i].x <= mouseCurrentPosX && buildableArea[i].x + 60 >= mouseCurrentPosX && 
+        buildableArea[i].y <= mouseCurrentPosY && buildableArea[i].y + 60 >= mouseCurrentPosY){
+            for (let u = 0; u < buildingArray.length; u++) {
+                if(buildingArray[u].x <= mouseCurrentPosX + buildingArray[u].width / 2 && buildingArray[u].x + buildingArray[u].width >= mouseCurrentPosX - buildingArray[u].width / 2 && 
+                    buildingArray[u].y <= mouseCurrentPosY + buildingArray[u].height / 2  && buildingArray[u].y + buildingArray[u].height >= mouseCurrentPosY - buildingArray[u].height / 2){
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+};
 //
-function DrawSelectRect(){
+function DrawRectangleToSelectArmyUnits(){
     if(drawSelect == true){
         ctx.beginPath();
         ctx.strokeStyle = "rgba(0, 229, 229, 1)";
@@ -255,8 +308,12 @@ function MoveMap(x, y){
         mapTilesArray[i].xPos += x;
         mapTilesArray[i].yPos += y;
         if(buildingArray[i] != undefined){
-            buildingArray[i].xPos += x;
-            buildingArray[i].yPos += y;
+            buildingArray[i].x += x;
+            buildingArray[i].y += y;
+        }
+        if(buildableArea[i] != undefined){
+            buildableArea[i].x += x;
+            buildableArea[i].y += y;
         }
     }
 }
