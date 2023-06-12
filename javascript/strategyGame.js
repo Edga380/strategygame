@@ -85,7 +85,7 @@ function loadMapTiles(){
             var xAxis = 0 + mapTileWidth * eachCollum;
             var yAxis = 0 + mapTileHeight * eachRow;
             PositionOfDifferentTilesOnTheMap(xAxis, yAxis);
-            const mapTileObjects = new MapTilesObj(mapTileWidth, mapTileHeight, 0 + mapTileWidth * eachCollum, 0 + mapTileHeight * eachRow, tileLocOnTileMapImgX, tileLocOnTileMapImgY, mapTileWidth, mapTileHeight, "/images/tileMap/tileMap.png");
+            const mapTileObjects = new MapTilesObj(mapTileWidth, mapTileHeight, 0 + mapTileWidth * eachCollum, 0 + mapTileHeight * eachRow, tileLocOnTileMapImgX, tileLocOnTileMapImgY, mapTileWidth, mapTileHeight, "./images/tileMap/tileMap.png");
             mapTilesArray.push(mapTileObjects);
             tileLocOnTileMapImgX = 60;
             tileLocOnTileMapImgY = 0;
@@ -98,7 +98,7 @@ function loadMiniMapTiles(){
             var xAxis = 0 + mapTileWidth * eachCollum;
             var yAxis = 0 + mapTileHeight * eachRow;
             PositionOfDifferentTilesOnTheMap(xAxis, yAxis);
-            const mapTileObjects = new MapTilesObj(mapTileWidth, mapTileHeight, 0 + mapTileWidth * eachCollum, 0 + mapTileHeight * eachRow, tileLocOnTileMapImgX, tileLocOnTileMapImgY, mapTileWidth, mapTileHeight, "/images/tileMap/tileMap.png");
+            const mapTileObjects = new MapTilesObj(mapTileWidth, mapTileHeight, 0 + mapTileWidth * eachCollum, 0 + mapTileHeight * eachRow, tileLocOnTileMapImgX, tileLocOnTileMapImgY, mapTileWidth, mapTileHeight, "./images/tileMap/tileMap.png");
             mapTileObjects.xPos += 9000;
             mapTileObjects.yPos += 750;
             miniMapTilesArray.push(mapTileObjects);
@@ -125,13 +125,13 @@ function DrawUIElements(){
     ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
     ctx.fillRect(710, 50, 20, 200);
     //Show mini map here
-    uiMiniMap.src = "/images/tileMap/UIMiniMap.png";
+    uiMiniMap.src = "./images/tileMap/UIMiniMap.png";
     ctx.drawImage(uiMiniMap, 740, 50, 200, 200);
     //Show building options here
-    uiMenu.src = "/images/tileMap/UIMenu.png";
+    uiMenu.src = "./images/tileMap/UIMenu.png";
     ctx.drawImage(uiMenu, 740, 300, 200, 300);
     //Solar panel
-    solarPanel.src = "/images/tileMap/solarPanel.png";
+    solarPanel.src = "./images/tileMap/solarPanel.png";
     ctx.drawImage(solarPanel, 745, 320, 60, 60);
     //Wall
     ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
@@ -140,7 +140,7 @@ function DrawUIElements(){
     ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
     ctx.fillRect(875, 320, 60, 60);
     //Vehicle plant
-    vehiclePlant.src = "/images/tileMap/vehiclePlant.png";
+    vehiclePlant.src = "./images/tileMap/vehiclePlant.png";
     ctx.drawImage(vehiclePlant, 745, 385, 60, 60);
     //Soldier barracks
     ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
@@ -177,7 +177,7 @@ function mouseDownHandler(event) {
             console.log("Solar panel");
         }
         else if(pickDropSolarPanel == true){
-            const mapTileObjects = new MapTilesObj(32, 32, mouseCurrentPosX - 15, mouseCurrentPosY - 15, 0, 0, 32, 32, "/images/tileMap/solarPanel.png");
+            const mapTileObjects = new MapTilesObj(32, 32, mouseCurrentPosX - 15, mouseCurrentPosY - 15, 0, 0, 32, 32, "./images/tileMap/solarPanel.png");
             buildingArray.push(mapTileObjects);
             pickDropSolarPanel = false;
         }
@@ -236,7 +236,7 @@ function PickAndDropBuilding(){
             ctx.fillStyle = "red";
         }
         ctx.fillRect(mouseCurrentPosX - 15, mouseCurrentPosY - 15, 32, 32);
-        solarPanelTransparent.src = "/images/tileMap/solarPanelTransparent.png";
+        solarPanelTransparent.src = "./images/tileMap/solarPanelTransparent.png";
         ctx.drawImage(solarPanelTransparent, mouseCurrentPosX - 15, mouseCurrentPosY - 15, 32, 32);
     }
 };
