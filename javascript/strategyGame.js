@@ -5,8 +5,9 @@ const ctx = canvas.getContext("2d");
 const CANVAS_WIDTH = canvas.width = 960;//960
 const CANVAS_HEIGHT = canvas.height = 640;//640
 //
-var player = [{x: -200, y: -200, cash: 7803}];
+var player = {cash: 7803};
 //
+var loadMiniMap = false;
 const mapTilesCountWidth = 36;
 const mapTilesCountHeight = 36;
 const mapTileWidth = 60;
@@ -17,11 +18,18 @@ const buildingArray = [];
 const buildableArea = [];
 var tileLocOnTileMapImgX = 60;
 var tileLocOnTileMapImgY = 0;
+//Mouse
+var mousePreviousPosX = 0;
+var mousePreviousPosY = 0;
+var mouseCurrentPosX = 0;
+var mouseCurrentPosY = 0;
+var mouseRightClick = false;
+//testing
+var storeCurrentBuilding = undefined;
 //Building class
 class BuildingObjects {
-    constructor(src, width, height, x, y, tag){
-        this.image = new Image();
-        this.image.src = src;
+    constructor(image, width, height, x, y, tag){
+        this.image = image;
         this.width = width;
         this.height = height;
         this.x = x;
@@ -58,23 +66,29 @@ class MapTilesObj {
     }
 };
 //UI variables
-var uiMiniMap = new Image();
-var uiMenu = new Image();
-var solarPanel = new Image();
-var solarPanelTransparent = new Image();
-var vehiclePlant = new Image();
-var soldierBaracks = new Image();
+var uiImages = {
+    uiMiniMap: loadImage("./images/UI/uiMiniMap.png"),
+    uiMenu: loadImage("./images/UI/uiMenu.png"),
+    solarPanel: loadImage("./images/buildings/solarPanel.png"),
+    vehiclePlant: loadImage("./images/buildings/vehiclePlant.png")
+}
+const uiButtonLoc = {
+    solarPanel: {cost: 800, image: loadImage("./images/buildings/solarPanel.png"), imageTransparent: loadImage("./images/buildings/solarPanelTransparent.png"), xStart: 745, xEnd: 805, yStart: 320, yEnd: 380, width: 32, height: 32},
+    wall: {cost: 500, image: loadImage("./images/UI/uiMiniMap.png"), imageTransparent: loadImage("./images/UI/uiMiniMap.png"), xStart: 810, xEnd: 870, yStart: 320, yEnd: 380, width: 32, height: 32},
+    harvesting: {cost: 1500, image: loadImage("./images/UI/uiMenu.png"), imageTransparent: loadImage("./images/UI/uiMenu.png"), xStart: 875, xEnd: 935, yStart: 320, yEnd: 380, width: 32, height: 32},
+    vehiclePlant: {cost: 2000, image: loadImage("./images/buildings/vehiclePlant.png"), imageTransparent: loadImage("./images/buildings/vehiclePlantTransparent.png"), xStart: 745, xEnd: 805, yStart: 385, yEnd: 445, width: 96, height: 64},
+    soldierBarracks: {cost: 1200, image: loadImage("./images/buildings/solarPanel.png"), imageTransparent: loadImage("./images/buildings/solarPanel.png"), xStart: 810, xEnd: 870, yStart: 385, yEnd: 445, width: 32, height: 32}
+}
 //Information text
 var informationText = [];
 var yCoordinate = 20;
 //Draw select rectangle variables
 var drawSelect = false;
 //
-var pickDropSolarPanel = false;
+var pickAndBuild = false;
 
 //LOAD BEFORE GAMELOOP STARTS
 loadMapTiles();
-loadMiniMapTiles();
 GetDarkBrownTilesLocations();
 //
 
@@ -83,12 +97,12 @@ function gameLoop(){
     canvas.style.backgroundColor = "black";
     //Layer01
     drawMap();
-    drawBuildings();
     //Layer02
-    DrawRectangleToSelectArmyUnits();
-    PickAndDropBuilding();
+    drawBuildings();
     //Layer03
+    PickAndDropBuilding();
     //Layer04
+    DrawRectangleToSelectArmyUnits();
     //Layer05
     //Layer06
     DrawUIElements();
@@ -105,25 +119,21 @@ function loadMapTiles(){
             var yAxis = 0 + mapTileHeight * eachRow;
             PositionOfDifferentTilesOnTheMap(xAxis, yAxis);
             const mapTileObjects = new MapTilesObj(mapTileWidth, mapTileHeight, 0 + mapTileWidth * eachCollum, 0 + mapTileHeight * eachRow, tileLocOnTileMapImgX, tileLocOnTileMapImgY, mapTileWidth, mapTileHeight, "./images/tileMap/tileMap.png");
-            mapTilesArray.push(mapTileObjects);
+            if(loadMiniMap){
+                mapTileObjects.xPos += 9000;
+                mapTileObjects.yPos += 750;
+                miniMapTilesArray.push(mapTileObjects);
+            }
+            else{
+                mapTilesArray.push(mapTileObjects);
+            }
             tileLocOnTileMapImgX = 60;
             tileLocOnTileMapImgY = 0;
         }
     }
-};
-function loadMiniMapTiles(){
-    for (let eachRow = 0; eachRow < mapTilesCountWidth; eachRow++) {
-        for (let eachCollum = 0; eachCollum < mapTilesCountHeight; eachCollum++) {
-            var xAxis = 0 + mapTileWidth * eachCollum;
-            var yAxis = 0 + mapTileHeight * eachRow;
-            PositionOfDifferentTilesOnTheMap(xAxis, yAxis);
-            const mapTileObjects = new MapTilesObj(mapTileWidth, mapTileHeight, 0 + mapTileWidth * eachCollum, 0 + mapTileHeight * eachRow, tileLocOnTileMapImgX, tileLocOnTileMapImgY, mapTileWidth, mapTileHeight, "./images/tileMap/tileMap.png");
-            mapTileObjects.xPos += 9000;
-            mapTileObjects.yPos += 750;
-            miniMapTilesArray.push(mapTileObjects);
-            tileLocOnTileMapImgX = 60;
-            tileLocOnTileMapImgY = 0;
-        }
+    if(!loadMiniMap){
+        loadMiniMap = true;
+        loadMapTiles();
     }
 };
 function GetDarkBrownTilesLocations(){
@@ -132,6 +142,11 @@ function GetDarkBrownTilesLocations(){
             buildableArea.push({x : mapTilesArray[i].xPos, y : mapTilesArray[i].yPos});
         }
     }
+};
+function loadImage(src){
+    var image = new Image();
+    image.src = src;
+    return image;
 };
 function InformationTextDisplay(){
     for (let i = 0; i < informationText.length; i++) {
@@ -144,26 +159,22 @@ function InformationTextDisplay(){
     }
 };
 //UI
-//
 function DrawUIElements(){
     //Information text
     InformationTextDisplay();
     //Player cash
     ctx.fillStyle = "white";
     ctx.font = "25px Arial";
-    ctx.fillText("" + player[0].cash, 810, 40);
+    ctx.fillText("" + player.cash, 810, 40);
     //Show energy consuption
     ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
     ctx.fillRect(710, 50, 20, 200);
     //Show mini map here
-    uiMiniMap.src = "./images/tileMap/UIMiniMap.png";
-    ctx.drawImage(uiMiniMap, 740, 50, 200, 200);
+    ctx.drawImage(uiImages.uiMiniMap, 740, 50, 200, 200);
     //Show building options here
-    uiMenu.src = "./images/tileMap/UIMenu.png";
-    ctx.drawImage(uiMenu, 740, 300, 200, 300);
+    ctx.drawImage(uiImages.uiMenu, 740, 300, 200, 300);
     //Solar panel
-    solarPanel.src = "./images/tileMap/solarPanel.png";
-    ctx.drawImage(solarPanel, 745, 320, 60, 60);
+    ctx.drawImage(uiImages.solarPanel, 745, 320, 60, 60);
     //Wall
     ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
     ctx.fillRect(810, 320, 60, 60);
@@ -171,21 +182,13 @@ function DrawUIElements(){
     ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
     ctx.fillRect(875, 320, 60, 60);
     //Vehicle plant
-    vehiclePlant.src = "./images/tileMap/vehiclePlant.png";
-    ctx.drawImage(vehiclePlant, 745, 385, 60, 60);
+    ctx.drawImage(uiImages.vehiclePlant, 745, 385, 60, 60);
     //Soldier barracks
     ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
     ctx.fillRect(810, 385, 60, 60);
-    //soldierBaracks.src = "/images/tileMap/vehiclePlant.png";
-    //ctx.drawImage(soldierBaracks, 875, 320, 60, 60);
+    //ctx.drawImage(uiImages.soldierBaracks, 875, 320, 60, 60);
 
 };
-//
-var mousePreviousPosX = 0;
-var mousePreviousPosY = 0;
-var mouseCurrentPosX = 0;
-var mouseCurrentPosY = 0;
-var mouseRightClick = false;
 //Prevent right click options list from appearing
 canvas.addEventListener("contextmenu", function(event) {
     event.preventDefault();
@@ -200,23 +203,28 @@ function mouseDownHandler(event) {
         mousePreviousPosX = mouseX;
         mousePreviousPosY = mouseY;
         mouseRightClick = true;
-        pickDropSolarPanel = false;
+        pickAndBuild = false;
     }
     else if(event.button == "0"){
-        if(mouseX >= 745 && mouseX <= 805 && mouseY >= 320 & mouseY <= 380 && pickDropSolarPanel == false){
-            pickDropSolarPanel = true;
-            console.log("Solar panel");
+        if(CompareMouseLocationToButton(mouseX, mouseY)){
+            pickAndBuild = true;
         }
-        else if(pickDropSolarPanel == true){
-            if(CheckIfYouAreOverBuildableArea()){
-                const buildingObject = new BuildingObjects("./images/tileMap/solarPanel.png", 32, 32, mouseCurrentPosX - 15, mouseCurrentPosY - 15, "solarPanel");
+        else if(pickAndBuild){
+            if(CheckIfYouAreOverBuildableArea() && false == player.cash - storeCurrentBuilding.cost < 0 ? true : false){
+                const buildingObject = new BuildingObjects(storeCurrentBuilding.image, storeCurrentBuilding.width, storeCurrentBuilding.height, mouseCurrentPosX - storeCurrentBuilding.width / 2, mouseCurrentPosY - storeCurrentBuilding.height / 2, undefined);
                 buildingArray.push(buildingObject);
-                console.log(buildingObject);
-                pickDropSolarPanel = false;
+                pickAndBuild = false;
                 informationText.push({string: "Built!", color: "green"});
+                player.cash -= storeCurrentBuilding.cost;
+                console.log(buildingArray);
             }
             else{
-                informationText.push({string: "You can't build here!", color: "red"});
+                if(true == player.cash - storeCurrentBuilding.cost < 0 ? true : false){
+                    informationText.push({string: "You don't have enough cash!", color: "red"});
+                }
+                else{
+                    informationText.push({string: "You can't build here!", color: "red"});
+                }
             }
         }
         else{
@@ -226,28 +234,50 @@ function mouseDownHandler(event) {
         }
     }
 };
-console.log(buildingArray);
+function CompareMouseLocationToButton(mouseX, mouseY){
+    for (const key in uiButtonLoc) {
+        if(mouseX >= uiButtonLoc[key].xStart && mouseX <= uiButtonLoc[key].xEnd && mouseY >= uiButtonLoc[key].yStart && mouseY <= uiButtonLoc[key].yEnd){
+            storeCurrentBuilding = uiButtonLoc[key];
+            return true;
+        }
+    }
+    return false;
+};
+//This function is inside gameloop
+function PickAndDropBuilding(){
+    if(pickAndBuild){       
+        if(CheckIfYouAreOverBuildableArea() && false == player.cash - storeCurrentBuilding.cost < 0 ? true : false)
+        {
+            ctx.fillStyle = "green";
+        }
+        else{
+            ctx.fillStyle = "red";
+        }
+        ctx.fillRect(mouseCurrentPosX - storeCurrentBuilding.width / 2, mouseCurrentPosY - storeCurrentBuilding.height / 2, storeCurrentBuilding.width, storeCurrentBuilding.height);
+        ctx.drawImage(storeCurrentBuilding.imageTransparent, mouseCurrentPosX - storeCurrentBuilding.width / 2, mouseCurrentPosY - storeCurrentBuilding.height / 2, storeCurrentBuilding.width, storeCurrentBuilding.height);
+    }
+};
 //Mouse movement on canvas
 canvas.addEventListener("mousemove", mouseMoveHandler, false);
 function mouseMoveHandler(event) {
     var rect = canvas.getBoundingClientRect();
     var mouseX = event.clientX - rect.left;
     var mouseY = event.clientY - rect.top;
-    if(mouseX > mousePreviousPosX && mouseRightClick == true && mapTilesArray[mapTilesArray.length - 1].xPos < 2100){
+    if(mouseRightClick){
+        if(mouseX > mousePreviousPosX && mapTilesArray[mapTilesArray.length - 1].xPos < 2100){
+            MoveMap(4, 0);
+        }
+        else if(mouseX < mousePreviousPosX && mapTilesArray[mapTilesArray.length - 1].xPos > 900){
+            MoveMap(-4, 0);
+        }
+        if(mouseY > mousePreviousPosY && mapTilesArray[mapTilesArray.length - 1].yPos < 2100){
+            MoveMap(0, 4);
+        }
+        else if(mouseY < mousePreviousPosY && mapTilesArray[mapTilesArray.length - 1].yPos > 580){
+            MoveMap(0, -4);
+        }
         mousePreviousPosX = mouseX;
-        MoveMap(4, 0);
-    }
-    if(mouseX < mousePreviousPosX && mouseRightClick == true && mapTilesArray[mapTilesArray.length - 1].xPos > 900){
-        mousePreviousPosX = mouseX;
-        MoveMap(-4, 0);
-    }
-    if(mouseY > mousePreviousPosY && mouseRightClick == true && mapTilesArray[mapTilesArray.length - 1].yPos < 2100){
         mousePreviousPosY = mouseY;
-        MoveMap(0, 4);
-    }
-    if(mouseY < mousePreviousPosY && mouseRightClick == true && mapTilesArray[mapTilesArray.length - 1].yPos > 580){
-        mousePreviousPosY = mouseY;
-        MoveMap(0, -4);
     }
     mouseCurrentPosX = mouseX;
     mouseCurrentPosY = mouseY;
@@ -264,28 +294,13 @@ function mouseUpHandler(event) {
         return;
     }
 };
-//
-function PickAndDropBuilding(){
-    if(pickDropSolarPanel == true){       
-        if(CheckIfYouAreOverBuildableArea())
-        {
-            ctx.fillStyle = "green";
-        }
-        else{
-            ctx.fillStyle = "red";
-        }
-        ctx.fillRect(mouseCurrentPosX - 15, mouseCurrentPosY - 15, 32, 32);
-        solarPanelTransparent.src = "./images/tileMap/solarPanelTransparent.png";
-        ctx.drawImage(solarPanelTransparent, mouseCurrentPosX - 15, mouseCurrentPosY - 15, 32, 32);
-    }
-};
 function CheckIfYouAreOverBuildableArea(){
     for (let i = 0; i < buildableArea.length; i++) {
         if(buildableArea[i].x <= mouseCurrentPosX && buildableArea[i].x + 60 >= mouseCurrentPosX && 
         buildableArea[i].y <= mouseCurrentPosY && buildableArea[i].y + 60 >= mouseCurrentPosY){
             for (let u = 0; u < buildingArray.length; u++) {
-                if(buildingArray[u].x <= mouseCurrentPosX + buildingArray[u].width / 2 && buildingArray[u].x + buildingArray[u].width >= mouseCurrentPosX - buildingArray[u].width / 2 && 
-                    buildingArray[u].y <= mouseCurrentPosY + buildingArray[u].height / 2  && buildingArray[u].y + buildingArray[u].height >= mouseCurrentPosY - buildingArray[u].height / 2){
+                if(buildingArray[u].x <= mouseCurrentPosX + storeCurrentBuilding.width / 2 && buildingArray[u].x + buildingArray[u].width >= mouseCurrentPosX - storeCurrentBuilding.width / 2 && 
+                    buildingArray[u].y <= mouseCurrentPosY + storeCurrentBuilding.height / 2  && buildingArray[u].y + buildingArray[u].height >= mouseCurrentPosY - storeCurrentBuilding.height / 2){
                     return false;
                 }
             }
