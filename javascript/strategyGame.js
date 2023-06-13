@@ -5,9 +5,13 @@ const ctx = canvas.getContext("2d");
 const CANVAS_WIDTH = canvas.width = 960;//960
 const CANVAS_HEIGHT = canvas.height = 640;//640
 //
-var player = {cash: 7803};
+let player = {cash: 7803};
+const storedVehicles = [];
+const selectedVehicles = [];
+let vehiclesSelected = false;
+let showPrice = false;
 //
-var loadMiniMap = false;
+let loadMiniMap = false;
 const mapTilesCountWidth = 36;
 const mapTilesCountHeight = 36;
 const mapTileWidth = 60;
@@ -16,16 +20,55 @@ const mapTilesArray = [];
 const miniMapTilesArray = [];
 const buildingArray = [];
 const buildableArea = [];
-var tileLocOnTileMapImgX = 60;
-var tileLocOnTileMapImgY = 0;
+let tileLocOnTileMapImgX = 60;
+let tileLocOnTileMapImgY = 0;
 //Mouse
-var mousePreviousPosX = 0;
-var mousePreviousPosY = 0;
-var mouseCurrentPosX = 0;
-var mouseCurrentPosY = 0;
-var mouseRightClick = false;
-//testing
-var storeCurrentBuilding = undefined;
+let mousePreviousPosX = 0;
+let mousePreviousPosY = 0;
+let mouseCurrentPosX = 0;
+let mouseCurrentPosY = 0;
+let mouseRightClick = false;
+let moveToLocationX = 0;
+let moveToLocationY = 0;
+//
+let storeCurrentBuilding = undefined;
+let storeCurrentBuildingCostToDisplay = undefined;
+//Information text
+let informationText = [];
+let yCoordinate = 20;
+//Draw select rectangle variables
+let drawSelect = false;
+//
+let pickAndBuild = false;
+//UI variables
+let uiImages = {
+    uiMiniMap: loadImage("./images/UI/uiMiniMap.png"),
+    uiMenu: loadImage("./images/UI/uiMenu.png"),
+    solarPanel: loadImage("./images/buildings/solarPanel.png"),
+    vehiclePlant: loadImage("./images/buildings/vehiclePlant.png"),
+    soldierTraining: loadImage("./images/buildings/solarPanel.png")
+}
+const uiButtonLoc = {
+    solarPanel: {cost: 800, image: loadImage("./images/buildings/solarPanel.png"), imageTransparent: loadImage("./images/buildings/solarPanelTransparent.png"), xStart: 745, xEnd: 805, yStart: 320, yEnd: 380, width: 32, height: 32},
+    wall: {cost: 500, image: loadImage("./images/UI/uiMiniMap.png"), imageTransparent: loadImage("./images/UI/uiMiniMap.png"), xStart: 810, xEnd: 870, yStart: 320, yEnd: 380, width: 32, height: 32},
+    harvesting: {cost: 1500, image: loadImage("./images/UI/uiMenu.png"), imageTransparent: loadImage("./images/UI/uiMenu.png"), xStart: 875, xEnd: 935, yStart: 320, yEnd: 380, width: 32, height: 32},
+    vehiclePlant: {cost: 2000, image: loadImage("./images/buildings/vehiclePlant.png"), imageTransparent: loadImage("./images/buildings/vehiclePlantTransparent.png"), xStart: 745, xEnd: 805, yStart: 385, yEnd: 445, width: 96, height: 64},
+    soldierBarracks: {cost: 1200, image: loadImage("./images/buildings/solarPanel.png"), imageTransparent: loadImage("./images/buildings/solarPanel.png"), xStart: 810, xEnd: 870, yStart: 385, yEnd: 445, width: 32, height: 32},
+}
+//Sprites class
+class Sprites {
+    constructor(src, x, y, width, height){
+        this.image = new Image();
+        this.image.src = src;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+    draw (){
+        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    }
+}
 //Building class
 class BuildingObjects {
     constructor(image, width, height, x, y, tag){
@@ -65,38 +108,19 @@ class MapTilesObj {
         ctx.drawImage(this.image, this.XPosOnTileMap, this.YPosOnTileMap, this.tileSizeXAxis, this.tileSizeYAxis, this.xPos / 12, this.yPos / 12, this.width / 11, this.height / 11);
     }
 };
-//UI variables
-var uiImages = {
-    uiMiniMap: loadImage("./images/UI/uiMiniMap.png"),
-    uiMenu: loadImage("./images/UI/uiMenu.png"),
-    solarPanel: loadImage("./images/buildings/solarPanel.png"),
-    vehiclePlant: loadImage("./images/buildings/vehiclePlant.png")
-}
-const uiButtonLoc = {
-    solarPanel: {cost: 800, image: loadImage("./images/buildings/solarPanel.png"), imageTransparent: loadImage("./images/buildings/solarPanelTransparent.png"), xStart: 745, xEnd: 805, yStart: 320, yEnd: 380, width: 32, height: 32},
-    wall: {cost: 500, image: loadImage("./images/UI/uiMiniMap.png"), imageTransparent: loadImage("./images/UI/uiMiniMap.png"), xStart: 810, xEnd: 870, yStart: 320, yEnd: 380, width: 32, height: 32},
-    harvesting: {cost: 1500, image: loadImage("./images/UI/uiMenu.png"), imageTransparent: loadImage("./images/UI/uiMenu.png"), xStart: 875, xEnd: 935, yStart: 320, yEnd: 380, width: 32, height: 32},
-    vehiclePlant: {cost: 2000, image: loadImage("./images/buildings/vehiclePlant.png"), imageTransparent: loadImage("./images/buildings/vehiclePlantTransparent.png"), xStart: 745, xEnd: 805, yStart: 385, yEnd: 445, width: 96, height: 64},
-    soldierBarracks: {cost: 1200, image: loadImage("./images/buildings/solarPanel.png"), imageTransparent: loadImage("./images/buildings/solarPanel.png"), xStart: 810, xEnd: 870, yStart: 385, yEnd: 445, width: 32, height: 32}
-}
-//Information text
-var informationText = [];
-var yCoordinate = 20;
-//Draw select rectangle variables
-var drawSelect = false;
-//
-var pickAndBuild = false;
-
 //LOAD BEFORE GAMELOOP STARTS
 loadMapTiles();
 GetDarkBrownTilesLocations();
-//
+let vehicleTest = new Sprites("./images/buildings/solarPanel.png", 50, 50, 32, 32);
 
+//
 function gameLoop(){
     ctx.clearRect(0, 0 , CANVAS_WIDTH, CANVAS_HEIGHT);   
     canvas.style.backgroundColor = "black";
     //Layer01
     drawMap();
+    vehicleTest.draw();
+    MoveSelectedTroopsAndVehicles();
     //Layer02
     drawBuildings();
     //Layer03
@@ -107,6 +131,7 @@ function gameLoop(){
     //Layer06
     DrawUIElements();
     drawMiniMap();
+    ShowPriceOfManufacturing();
     //
     requestAnimationFrame(gameLoop);
 };
@@ -115,8 +140,8 @@ gameLoop();
 function loadMapTiles(){
     for (let eachRow = 0; eachRow < mapTilesCountWidth; eachRow++) {
         for (let eachCollum = 0; eachCollum < mapTilesCountHeight; eachCollum++) {
-            var xAxis = 0 + mapTileWidth * eachCollum;
-            var yAxis = 0 + mapTileHeight * eachRow;
+            let xAxis = 0 + mapTileWidth * eachCollum;
+            let yAxis = 0 + mapTileHeight * eachRow;
             PositionOfDifferentTilesOnTheMap(xAxis, yAxis);
             const mapTileObjects = new MapTilesObj(mapTileWidth, mapTileHeight, 0 + mapTileWidth * eachCollum, 0 + mapTileHeight * eachRow, tileLocOnTileMapImgX, tileLocOnTileMapImgY, mapTileWidth, mapTileHeight, "./images/tileMap/tileMap.png");
             if(loadMiniMap){
@@ -144,7 +169,7 @@ function GetDarkBrownTilesLocations(){
     }
 };
 function loadImage(src){
-    var image = new Image();
+    let image = new Image();
     image.src = src;
     return image;
 };
@@ -187,7 +212,24 @@ function DrawUIElements(){
     ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
     ctx.fillRect(810, 385, 60, 60);
     //ctx.drawImage(uiImages.soldierBaracks, 875, 320, 60, 60);
+    //Soldier training
+    ctx.drawImage(uiImages.solarPanel, 700, 320, 30, 60);
+    //Vehicle manufacturing
+    ctx.drawImage(uiImages.solarPanel, 700, 385, 30, 60);
 
+};
+//
+function ShowPriceOfManufacturing(){
+    if(showPrice){
+        if(false == player.cash - storeCurrentBuildingCostToDisplay < 0 ? true : false){
+            ctx.fillStyle = "White";
+        }
+        else{
+            ctx.fillStyle = "Red";
+        }
+        ctx.font = "15px Arial";
+        ctx.fillText("Cost: " + storeCurrentBuildingCostToDisplay, mouseCurrentPosX, mouseCurrentPosY);
+    }
 };
 //Prevent right click options list from appearing
 canvas.addEventListener("contextmenu", function(event) {
@@ -196,9 +238,9 @@ canvas.addEventListener("contextmenu", function(event) {
 //Mouse pressdown
 canvas.addEventListener("mousedown", mouseDownHandler, false);
 function mouseDownHandler(event) {
-    var rect = canvas.getBoundingClientRect();
-    var mouseX = event.clientX - rect.left;
-    var mouseY = event.clientY - rect.top;
+    let rect = canvas.getBoundingClientRect();
+    let mouseX = event.clientX - rect.left;
+    let mouseY = event.clientY - rect.top;
     if(event.button == "2"){
         mousePreviousPosX = mouseX;
         mousePreviousPosY = mouseY;
@@ -216,7 +258,6 @@ function mouseDownHandler(event) {
                 pickAndBuild = false;
                 informationText.push({string: "Built!", color: "green"});
                 player.cash -= storeCurrentBuilding.cost;
-                console.log(buildingArray);
             }
             else{
                 if(true == player.cash - storeCurrentBuilding.cost < 0 ? true : false){
@@ -228,16 +269,72 @@ function mouseDownHandler(event) {
             }
         }
         else{
+            //TESTING START
+            MoveSelectedTroopsAndVehicles();
+            //TESTING END
             mousePreviousPosX = mouseX;
             mousePreviousPosY = mouseY;
             drawSelect = true;
         }
     }
 };
+//Mouse movement on canvas
+canvas.addEventListener("mousemove", mouseMoveHandler, false);
+function mouseMoveHandler(event) {
+    let rect = canvas.getBoundingClientRect();
+    let mouseX = event.clientX - rect.left;
+    let mouseY = event.clientY - rect.top;
+    if(mouseRightClick){
+        if(mouseX > mousePreviousPosX && mapTilesArray[mapTilesArray.length - 1].xPos < 2100){
+            MoveMap(4, 0);
+        }
+        else if(mouseX < mousePreviousPosX && mapTilesArray[mapTilesArray.length - 1].xPos > 900){
+            MoveMap(-4, 0);
+        }
+        if(mouseY > mousePreviousPosY && mapTilesArray[mapTilesArray.length - 1].yPos < 2100){
+            MoveMap(0, 4);
+        }
+        else if(mouseY < mousePreviousPosY && mapTilesArray[mapTilesArray.length - 1].yPos > 580){
+            MoveMap(0, -4);
+        }
+        mousePreviousPosX = mouseX;
+        mousePreviousPosY = mouseY;
+    }
+    if(ShowTextIfMouseIsOver(mouseX, mouseY)){
+        showPrice = true;
+    }
+    else{
+        showPrice = false;
+    }
+    mouseCurrentPosX = mouseX;
+    mouseCurrentPosY = mouseY;
+};
+//Mouse button release
+canvas.addEventListener("mouseup", mouseUpHandler, false);
+function mouseUpHandler(event) {
+    if(event.button == "2"){
+        mouseRightClick = false;
+        return;
+    }
+    else if(event.button == "0"){
+        drawSelect = false;
+        CheckIfTroopsAndVehicleInsideRectangle();
+        return;
+    }
+};
 function CompareMouseLocationToButton(mouseX, mouseY){
     for (const key in uiButtonLoc) {
         if(mouseX >= uiButtonLoc[key].xStart && mouseX <= uiButtonLoc[key].xEnd && mouseY >= uiButtonLoc[key].yStart && mouseY <= uiButtonLoc[key].yEnd){
             storeCurrentBuilding = uiButtonLoc[key];
+            return true;
+        }
+    }
+    return false;
+};
+function ShowTextIfMouseIsOver(mouseX, mouseY){
+    for (const key in uiButtonLoc) {
+        if(mouseX >= uiButtonLoc[key].xStart && mouseX <= uiButtonLoc[key].xEnd && mouseY >= uiButtonLoc[key].yStart && mouseY <= uiButtonLoc[key].yEnd){
+            storeCurrentBuildingCostToDisplay = uiButtonLoc[key].cost;
             return true;
         }
     }
@@ -255,43 +352,6 @@ function PickAndDropBuilding(){
         }
         ctx.fillRect(mouseCurrentPosX - storeCurrentBuilding.width / 2, mouseCurrentPosY - storeCurrentBuilding.height / 2, storeCurrentBuilding.width, storeCurrentBuilding.height);
         ctx.drawImage(storeCurrentBuilding.imageTransparent, mouseCurrentPosX - storeCurrentBuilding.width / 2, mouseCurrentPosY - storeCurrentBuilding.height / 2, storeCurrentBuilding.width, storeCurrentBuilding.height);
-    }
-};
-//Mouse movement on canvas
-canvas.addEventListener("mousemove", mouseMoveHandler, false);
-function mouseMoveHandler(event) {
-    var rect = canvas.getBoundingClientRect();
-    var mouseX = event.clientX - rect.left;
-    var mouseY = event.clientY - rect.top;
-    if(mouseRightClick){
-        if(mouseX > mousePreviousPosX && mapTilesArray[mapTilesArray.length - 1].xPos < 2100){
-            MoveMap(4, 0);
-        }
-        else if(mouseX < mousePreviousPosX && mapTilesArray[mapTilesArray.length - 1].xPos > 900){
-            MoveMap(-4, 0);
-        }
-        if(mouseY > mousePreviousPosY && mapTilesArray[mapTilesArray.length - 1].yPos < 2100){
-            MoveMap(0, 4);
-        }
-        else if(mouseY < mousePreviousPosY && mapTilesArray[mapTilesArray.length - 1].yPos > 580){
-            MoveMap(0, -4);
-        }
-        mousePreviousPosX = mouseX;
-        mousePreviousPosY = mouseY;
-    }
-    mouseCurrentPosX = mouseX;
-    mouseCurrentPosY = mouseY;
-};
-//Mouse button release
-canvas.addEventListener("mouseup", mouseUpHandler, false);
-function mouseUpHandler(event) {
-    if(event.button == "2"){
-        mouseRightClick = false;
-        return;
-    }
-    else if(event.button == "0"){
-        drawSelect = false;
-        return;
     }
 };
 function CheckIfYouAreOverBuildableArea(){
@@ -316,7 +376,32 @@ function DrawRectangleToSelectArmyUnits(){
         ctx.rect(mousePreviousPosX, mousePreviousPosY, mouseCurrentPosX - mousePreviousPosX, mouseCurrentPosY - mousePreviousPosY);
         ctx.stroke();
     }
-}
+};
+function CheckIfTroopsAndVehicleInsideRectangle(){
+    if(mousePreviousPosX <= vehicleTest.x && mouseCurrentPosX >= vehicleTest.x &&  mousePreviousPosY <= vehicleTest.y && mouseCurrentPosY >= vehicleTest.y){
+        selectedVehicles.push(vehicleTest);
+        console.log(vehicleTest);
+    }
+};
+//TESTING TESTING
+function MoveSelectedTroopsAndVehicles(){
+        if(vehicleTest.x < mousePreviousPosX){
+            vehicleTest.x += 1;
+            console.log("x++");
+        }
+        else if(vehicleTest.x > mousePreviousPosX){
+            vehicleTest.x -= 1;
+            console.log("x--");
+        }
+        if(vehicleTest.y < mousePreviousPosY){
+            vehicleTest.y += 1;
+            console.log("y++");
+        }
+        else if(vehicleTest.y > mousePreviousPosY){
+            vehicleTest.y -= 1;
+            console.log("y--");
+        }
+};
 //
 function MoveMap(x, y){
     for (let i = 0; i < mapTilesArray.length; i++) {
@@ -331,7 +416,7 @@ function MoveMap(x, y){
             buildableArea[i].y += y;
         }
     }
-}
+};
 function drawMap(){
     for (let i = 0; i < mapTilesArray.length; i++) {
         if(mapTilesArray[i].xPos < 960 && mapTilesArray[i].xPos > -60 && mapTilesArray[i].yPos < 680 && mapTilesArray[i].yPos > -60){
