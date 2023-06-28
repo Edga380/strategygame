@@ -5,12 +5,11 @@ const ctx = canvas.getContext("2d");
 const CANVAS_WIDTH = canvas.width = 960;//960
 const CANVAS_HEIGHT = canvas.height = 640;//640
 //
-let player = {cash: 7803};
-const storedVehicles = [];
-const selectedVehicles = [];
-let vehiclesSelected = false;
-let showPrice = false;
+let player = {cash: 7803, energy: 0};
 //
+let storedVehiclesAndSoldiers = [];
+let selectedVehiclesAndSoldiers = [];
+//Map
 let loadMiniMap = false;
 const mapTilesCountWidth = 36;
 const mapTilesCountHeight = 36;
@@ -18,66 +17,118 @@ const mapTileWidth = 60;
 const mapTileHeight = 60;
 const mapTilesArray = [];
 const miniMapTilesArray = [];
-const buildingArray = [];
-const buildableArea = [];
 let tileLocOnTileMapImgX = 60;
 let tileLocOnTileMapImgY = 0;
+let rectLocationX = 750;
+let rectLocationY = 62;
 //Mouse
 let mousePreviousPosX = 0;
 let mousePreviousPosY = 0;
 let mouseCurrentPosX = 0;
 let mouseCurrentPosY = 0;
-let mouseRightClick = false;
-let moveToLocationX = 0;
-let moveToLocationY = 0;
-//
-let storeCurrentBuilding = undefined;
-let storeCurrentBuildingCostToDisplay = undefined;
-//Information text
+let mouseRightButtonPressDown = false;
+let mouseLeftButtonPressDown = false;
+let mouseIsmoving = false;
+let moveToX = undefined;
+let moveToY = undefined;
+//UI
+let drawSelect = false;
 let informationText = [];
 let yCoordinate = 20;
-//Draw select rectangle variables
-let drawSelect = false;
-//
-let pickAndBuild = false;
-//UI variables
-let uiImages = {
-    uiMiniMap: loadImage("./images/UI/uiMiniMap.png"),
-    uiMenu: loadImage("./images/UI/uiMenu.png"),
-    solarPanel: loadImage("./images/buildings/solarPanel.png"),
-    vehiclePlant: loadImage("./images/buildings/vehiclePlant.png"),
-    soldierTraining: loadImage("./images/buildings/solarPanel.png")
+let uiTag = "Building";
+let buildingPage = true;
+let soldierPage = false;
+let vehiclePage = false;
+let storeCurrentBuilding;
+let objectToDraw = false;
+const buttons = [];
+let pressedButton = false;
+const uiElements = [];
+//building
+const buildingArray = [];
+const buildableArea = [];
+let storeCheckLimit = 0;
+//Button class
+class UiElements {
+    constructor(src, x, y, height, width){
+        this.image = new Image();
+        this.image.src = src;
+        this.x = x;
+        this.y = y;
+        this.height = height;
+        this.width = width;
+    }
+    draw(){
+        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    }
 }
-const uiButtonLoc = {
-    solarPanel: {cost: 800, image: loadImage("./images/buildings/solarPanel.png"), imageTransparent: loadImage("./images/buildings/solarPanelTransparent.png"), xStart: 745, xEnd: 805, yStart: 320, yEnd: 380, width: 32, height: 32},
-    wall: {cost: 500, image: loadImage("./images/UI/uiMiniMap.png"), imageTransparent: loadImage("./images/UI/uiMiniMap.png"), xStart: 810, xEnd: 870, yStart: 320, yEnd: 380, width: 32, height: 32},
-    harvesting: {cost: 1500, image: loadImage("./images/UI/uiMenu.png"), imageTransparent: loadImage("./images/UI/uiMenu.png"), xStart: 875, xEnd: 935, yStart: 320, yEnd: 380, width: 32, height: 32},
-    vehiclePlant: {cost: 2000, image: loadImage("./images/buildings/vehiclePlant.png"), imageTransparent: loadImage("./images/buildings/vehiclePlantTransparent.png"), xStart: 745, xEnd: 805, yStart: 385, yEnd: 445, width: 96, height: 64},
-    soldierBarracks: {cost: 1200, image: loadImage("./images/buildings/solarPanel.png"), imageTransparent: loadImage("./images/buildings/solarPanel.png"), xStart: 810, xEnd: 870, yStart: 385, yEnd: 445, width: 32, height: 32},
+class Button {
+    constructor(src, x, y, height, width, tag, onClick, cost){
+        this.image = new Image();
+        this.image.src = src;
+        this.x = x;
+        this.y = y;
+        this.height = height;
+        this.width = width;
+        this.tag = tag;
+        this.onClick = onClick;
+        this.cost = cost;
+    }
+    draw(){
+        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    }
+    buttonPressed(x, y){
+        if(x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height){
+            this.onClick();
+        }
+    }
 }
 //Sprites class
 class Sprites {
-    constructor(src, x, y, width, height){
+    constructor(src, x, y, width, height, speed){
         this.image = new Image();
         this.image.src = src;
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.speed = speed;
     }
     draw (){
         ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
     }
+    movement(x, y){
+        let dx = x - this.x;
+        //console.log(dx);
+        let dy = y - this.y;
+        //console.log(dy);
+        let distance = Math.sqrt(dx * dx + dy * dy);
+        //console.log(distance);
+        if(distance > this.speed){
+            let ratio = this.speed / distance;
+            //console.log(ratio);
+            let moveX = dx * ratio;
+            //console.log(moveX);
+            let moveY = dy * ratio;
+            //console.log(moveY);
+            this.x += moveX;
+            this.y += moveY;
+        }
+    }
 }
 //Building class
 class BuildingObjects {
-    constructor(image, width, height, x, y, tag){
-        this.image = image;
+    constructor(src, width, height, x, y, tag, cost, limit, hp){
+        this.image = new Image();
+        this.image.src = src;
         this.width = width;
         this.height = height;
         this.x = x;
         this.y = y;
         this.tag = tag;
+        this.cost = cost;
+        this.limit = limit;
+        this.hp = hp;
     }
 
     draw(){
@@ -111,28 +162,38 @@ class MapTilesObj {
 //LOAD BEFORE GAMELOOP STARTS
 loadMapTiles();
 GetDarkBrownTilesLocations();
-let vehicleTest = new Sprites("./images/buildings/solarPanel.png", 50, 50, 32, 32);
-
+LoadUi();
+//Load base
+let mainBuilding = new BuildingObjects("./images/buildings/mainBuilding.png", 90, 90, 360, 0, "mainBuilding", 0, undefined, 100);
+let solarPanel01 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 328, 0, "solarPanel", 0, undefined, 100);
+let solarPanel02 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 328, 32, "solarPanel", 0, undefined, 100);
+let solarPanel03 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 328, 64, "solarPanel", 0, undefined, 100);
+buildingArray.push(mainBuilding, solarPanel01, solarPanel02, solarPanel03);
 //
 function gameLoop(){
-    ctx.clearRect(0, 0 , CANVAS_WIDTH, CANVAS_HEIGHT);   
-    canvas.style.backgroundColor = "black";
+    ctx.clearRect(0, 0 , CANVAS_WIDTH, CANVAS_HEIGHT);
     //Layer01
     drawMap();
-    vehicleTest.draw();
-    MoveSelectedTroopsAndVehicles();
     //Layer02
+    DrawVehiclesAndSoldiers();
     drawBuildings();
     //Layer03
-    PickAndDropBuilding();
-    //Layer04
     DrawRectangleToSelectArmyUnits();
+    //MoveSelectedTroopsAndVehicles();
+    moveSoldierTest();
+    //Layer04
+    DrawUi();
+    //Information text
+    LeftTopTextBox();
+    //Player cash
+    ctx.fillStyle = "white";
+    ctx.font = "25px Arial";
+    ctx.fillText("" + player.cash, 810, 40);
     //Layer05
-    //Layer06
-    DrawUIElements();
     drawMiniMap();
-    ShowPriceOfManufacturing();
-    //
+    drawCanvasLocationOnMiniMap();
+    //Layer06
+    DrawBuildableObject();
     requestAnimationFrame(gameLoop);
 };
 gameLoop();
@@ -168,67 +229,168 @@ function GetDarkBrownTilesLocations(){
         }
     }
 };
-function loadImage(src){
-    let image = new Image();
-    image.src = src;
-    return image;
+function LoadUi(){
+    let ui01 = new Button("./images/UI/uiMenu.png", 740, 300, 300, 200, "UiMenu");
+    let ui02 = new Button("./images/UI/uiMiniMap.png", 740, 50, 200, 200, "UiMenu");
+    let button01 = new Button("./images/UI/uiBuildingConstuction.png", 700, 320, 60, 30, "UiMenuButton", () => { uiTag = "Building", objectToDraw = false, buildingPage = true, soldierPage = false, vehiclePage = false}, "Buildings");
+    let button02 = new Button("./images/UI/uiSoldierTraining.png", 700, 385, 60, 30, "UiMenuButton", () => { uiTag = "Soldier", objectToDraw = false, buildingPage = false, soldierPage = true, vehiclePage = false}, "Soldiers");
+    let button03 = new Button("./images/UI/uiVehicleManufacturing.png", 700, 450, 60, 30, "UiMenuButton", () => { uiTag = "Vehicle", objectToDraw = false, buildingPage = false, soldierPage = false, vehiclePage = true}, "Vehicles");
+    let building01 = new Button("./images/buildings/solarPanelUi.png", 745, 320, 60, 60, "Building", () => {DragAndBuild(building01, "./images/buildings/solarPanel.png", 32, 32, 745, 320, "solarPanel", 800, 20)}, 800);
+    let building02 = new Button("./images/buildings/wallUi.png", 810, 320, 60, 60, "Building", () => {DragAndBuild(building02, "./images/buildings/wall.png", 20, 20, 810, 320, "Wall", 500, 50)}, 500);
+    let building03 = new Button("./images/buildings/harvestingBuildingUi.png", 875, 320, 60, 60, "Building", () => {DragAndBuild(building03, "./images/buildings/harvestingBuilding.png", 105, 60, 875, 320, "harvestingBuilding", 1500, 3)}, 1500);
+    let building04 = new Button("./images/buildings/vehicleFactoryUi.png", 745, 385, 60, 60, "Building", () => {DragAndBuild(building04, "./images/buildings/vehicleFactory.png", 90, 60, 745, 385, "vehicleFactory", 1200, 1)}, 1200);
+    let building05 = new Button("./images/buildings/soldierBarracksUi.png", 810, 385, 60, 60, "Building", () => {DragAndBuild(building05, "./images/buildings/soldierBarracks.png", 60, 60, 810, 385, "soldierBarrack", 1000, 1)}, 1000);
+    let soldier01 = new Button("./images/soldiers/soldierRiffle.png", 745, 320, 60, 60, "Soldier", () => {DragAndBuild(soldier01)}, 400);
+    let soldier02 = new Button("./images/soldiers/soldierRocket.png", 810, 320, 60, 60, "Soldier", () => {DragAndBuild(soldier02)}, 800);
+    let vehicle01 = new Button("./images/vehicles/tank01.png", 745, 320, 60, 60, "Vehicle", () => {DragAndBuild(vehicle01)}, 1600);
+    let vehicle02 = new Button("./images/vehicles/armoredVehicle01.png", 810, 320, 60, 60, "Vehicle", () => {DragAndBuild(vehicle02)}, 900);
+    let vehicle03 = new Button("./images/vehicles/harvester01.png", 875, 320, 60, 60, "Vehicle", () => {DragAndBuild(vehicle03)}, 3000);
+    uiElements.push(ui01, ui02);
+    buttons.push(button01, button02, button03, building01, building02, building03, building04, building05, vehicle01, vehicle02, vehicle03, soldier01, soldier02);
 };
-function InformationTextDisplay(){
-    for (let i = 0; i < informationText.length; i++) {
-        if(informationText.length >= 6){
-            informationText.shift();
-        }
-        ctx.fillStyle = informationText[i].color;
-        ctx.font = "15px Arial";
-        ctx.fillText(informationText[i].string, 10, yCoordinate * (i + 1));
+//BUILD BUILDING, TRAIN SOLDIER OR MANUFACTURE VEHICLE
+function DragAndBuild(currentObject, src, width, height, x, y, tag, cost, limit){
+    switch(true){
+        case currentObject.tag == "Building" && buildingPage:
+            storeCurrentBuilding = new BuildingObjects(src, width, height, x, y, tag, cost, limit);
+            objectToDraw = true;
+            break;
+        case currentObject.tag == "Soldier" && soldierPage:
+            if(CheckIfBuildingIsPresent("soldierBarrack") && false == player.cash - currentObject.cost < 0 ? true : false){
+                let soldierBuildingX;
+                let soldierBuildingY;
+                for (const building in buildingArray) {
+                    if(buildingArray[building].tag == "soldierBarrack"){
+                        soldierBuildingX = buildingArray[building].x;
+                        soldierBuildingY = buildingArray[building].y;
+                    }
+                }
+                const newSoldier = new Sprites(currentObject.image.src, soldierBuildingX + 60, soldierBuildingY + 20, currentObject.width, currentObject.height, 2);
+                storedVehiclesAndSoldiers.push(newSoldier);
+                informationText.push({string: "Training!", color: "green"});
+                player.cash -= currentObject.cost;
+            }
+            else if(!CheckIfBuildingIsPresent("soldierBarrack")){
+                informationText.push({string: "You must build barracks first so that you could train your soldiers!", color: "red"});
+            }
+            else{
+                informationText.push({string: "Not enough cash!", color: "red"});
+            }
+            break;
+        case currentObject.tag == "Vehicle" && vehiclePage:
+            if(CheckIfBuildingIsPresent("vehicleFactory") && false == player.cash - currentObject.cost < 0 ? true : false){
+                let vehicleBuildingX;
+                let vehicleBuildingY;
+                for (const building in buildingArray) {
+                    if(buildingArray[building].tag == "vehicleFactory"){
+                        vehicleBuildingX = buildingArray[building].x;
+                        vehicleBuildingY = buildingArray[building].y;
+                    }
+                }
+                const newVehicle = new Sprites(currentObject.image.src, vehicleBuildingX + 85, vehicleBuildingY + 20, currentObject.width, currentObject.height, 2);
+                storedVehiclesAndSoldiers.push(newVehicle);
+                informationText.push({string: "Manufacturing!", color: "green"});
+                player.cash -= currentObject.cost;
+            }
+            else if(!CheckIfBuildingIsPresent("vehicleFactory")){
+                informationText.push({string: "You must build barracks first so that you could train your soldiers!", color: "red"});
+            }
+            else{
+                informationText.push({string: "Not enough cash!", color: "red"});
+            }
+            break;
     }
 };
-//UI
-function DrawUIElements(){
-    //Information text
-    InformationTextDisplay();
-    //Player cash
-    ctx.fillStyle = "white";
-    ctx.font = "25px Arial";
-    ctx.fillText("" + player.cash, 810, 40);
-    //Show energy consuption
-    ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
-    ctx.fillRect(710, 50, 20, 200);
-    //Show mini map here
-    ctx.drawImage(uiImages.uiMiniMap, 740, 50, 200, 200);
-    //Show building options here
-    ctx.drawImage(uiImages.uiMenu, 740, 300, 200, 300);
-    //Solar panel
-    ctx.drawImage(uiImages.solarPanel, 745, 320, 60, 60);
-    //Wall
-    ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
-    ctx.fillRect(810, 320, 60, 60);
-    //Harvesting building
-    ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
-    ctx.fillRect(875, 320, 60, 60);
-    //Vehicle plant
-    ctx.drawImage(uiImages.vehiclePlant, 745, 385, 60, 60);
-    //Soldier barracks
-    ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
-    ctx.fillRect(810, 385, 60, 60);
-    //ctx.drawImage(uiImages.soldierBaracks, 875, 320, 60, 60);
-    //Soldier training
-    ctx.drawImage(uiImages.solarPanel, 700, 320, 30, 60);
-    //Vehicle manufacturing
-    ctx.drawImage(uiImages.solarPanel, 700, 385, 30, 60);
-
-};
-//
-function ShowPriceOfManufacturing(){
-    if(showPrice){
-        if(false == player.cash - storeCurrentBuildingCostToDisplay < 0 ? true : false){
-            ctx.fillStyle = "White";
+function DrawBuildableObject(){   
+    if(objectToDraw){
+        if(CheckIfYouAreOverBuildableArea() && storeCurrentBuilding.limit > CheckBuildingLimit() && false == player.cash - storeCurrentBuilding.cost < 0 ? true : false)
+        {
+            ctx.fillStyle = "green";
         }
         else{
-            ctx.fillStyle = "Red";
+            ctx.fillStyle = "red";
         }
-        ctx.font = "15px Arial";
-        ctx.fillText("Cost: " + storeCurrentBuildingCostToDisplay, mouseCurrentPosX, mouseCurrentPosY);
+        ctx.fillRect(mouseCurrentPosX - storeCurrentBuilding.width / 2, mouseCurrentPosY - storeCurrentBuilding.height / 2, storeCurrentBuilding.width, storeCurrentBuilding.height);
+        ctx.save();
+        ctx.globalAlpha = 0.5
+        ctx.drawImage(storeCurrentBuilding.image, mouseCurrentPosX - storeCurrentBuilding.width / 2, mouseCurrentPosY - storeCurrentBuilding.height / 2, storeCurrentBuilding.width, storeCurrentBuilding.height);
+        ctx.restore();
+    }
+};
+//CHECK IF BUILDING IS PRESSENT IF YES YOU CAN TRAIN OR MANUFACTURE
+function CheckIfBuildingIsPresent(tag){
+    console.log(buildingArray);
+    for (const building in buildingArray) {
+        console.log(buildingArray[building].tag);
+        if(buildingArray[building].tag == tag){
+            return true;
+        }
+    }
+    return false;
+};
+//CHECK IF BUILDING LIMIT IS REACHED
+function CheckBuildingLimit(){
+    let checkLimit = 0;
+    for (const key in buildingArray) {
+        if(buildingArray[key].tag == storeCurrentBuilding.tag){
+            checkLimit++;
+        }
+    }
+    return checkLimit;
+};
+//BUILD BUILD BUILD BUILD BUILD BUILD BUILD BUILD BUILD BUILD BUILD BUILD
+function Build(){
+    if(CheckIfYouAreOverBuildableArea() && false == player.cash - storeCurrentBuilding.cost < 0 ? true : false){
+        //Check if building limit reached
+        if(storeCurrentBuilding.limit <= CheckBuildingLimit()){
+            informationText.push({string: "You have reached the limit of how many you can build!", color: "red"});
+            objectToDraw = false;
+            pressedButton = false;
+            return;
+        }
+        storeCurrentBuilding.x = mouseCurrentPosX - storeCurrentBuilding.width / 2;
+        storeCurrentBuilding.y = mouseCurrentPosY - storeCurrentBuilding.height / 2;
+        const newBuilding = storeCurrentBuilding;
+        buildingArray.push(newBuilding);
+        player.cash -= storeCurrentBuilding.cost;
+        informationText.push({string: "Built!", color: "green"});
+        storeCurrentBuilding = [];
+        //reset variables:
+        objectToDraw = false;
+        pressedButton = false;
+    }
+    else if(!CheckIfYouAreOverBuildableArea()){
+        informationText.push({string: "You can't build here!", color: "red"});
+    }
+    else if(false == player.cash - storeCurrentBuilding.cost > 0 ? true : false){
+        informationText.push({string: "Not enough cash!", color: "red"});
+    }
+};
+//CHECK WHICH BUTTON IS PRESSED
+function CheckButtonOnClick(xMouse, yMouse){
+    for (const button in buttons) {
+        buttons[button].buttonPressed(xMouse, yMouse);
+        if(buttons[button].x <= xMouse && buttons[button].x + buttons[button].width >= xMouse && 
+            buttons[button].y <= yMouse && buttons[button].y  + buttons[button].height >= yMouse &&
+            buildingPage){
+            pressedButton = true;
+            selectedVehiclesAndSoldiers = [];
+        }
+    }
+};
+function DrawUi(){
+    for (const uiElement in uiElements) {
+        uiElements[uiElement].draw();
+    }
+    for (const button in buttons) {
+        switch(buttons[button].tag){
+            case "UiMenuButton":
+                buttons[button].draw();
+                break;
+            case uiTag:
+                buttons[button].draw();
+                break;
+        }
     }
 };
 //Prevent right click options list from appearing
@@ -238,44 +400,33 @@ canvas.addEventListener("contextmenu", function(event) {
 //Mouse pressdown
 canvas.addEventListener("mousedown", mouseDownHandler, false);
 function mouseDownHandler(event) {
+    console.log(storedVehiclesAndSoldiers);
     let rect = canvas.getBoundingClientRect();
     let mouseX = event.clientX - rect.left;
     let mouseY = event.clientY - rect.top;
-    if(event.button == "2"){
-        mousePreviousPosX = mouseX;
-        mousePreviousPosY = mouseY;
-        mouseRightClick = true;
-        pickAndBuild = false;
+    switch(event.button){
+        case 2:
+            mouseRightButtonPressDown = true;
+            break;
+        case 0:
+            mouseLeftButtonPressDown = true;
+            if(objectToDraw){
+                Build();
+            }
+            //Checks if any of UI button is pressed
+            CheckButtonOnClick(mouseX, mouseY);
+            break;
+        case 1:
+            player.cash += 1000;
+            break;
     }
-    else if(event.button == "0"){
-        if(CompareMouseLocationToButton(mouseX, mouseY)){
-            pickAndBuild = true;
-        }
-        else if(pickAndBuild){
-            if(CheckIfYouAreOverBuildableArea() && false == player.cash - storeCurrentBuilding.cost < 0 ? true : false){
-                const buildingObject = new BuildingObjects(storeCurrentBuilding.image, storeCurrentBuilding.width, storeCurrentBuilding.height, mouseCurrentPosX - storeCurrentBuilding.width / 2, mouseCurrentPosY - storeCurrentBuilding.height / 2, undefined);
-                buildingArray.push(buildingObject);
-                pickAndBuild = false;
-                informationText.push({string: "Built!", color: "green"});
-                player.cash -= storeCurrentBuilding.cost;
-            }
-            else{
-                if(true == player.cash - storeCurrentBuilding.cost < 0 ? true : false){
-                    informationText.push({string: "You don't have enough cash!", color: "red"});
-                }
-                else{
-                    informationText.push({string: "You can't build here!", color: "red"});
-                }
-            }
-        }
-        else{
-            //TESTING START
-            MoveSelectedTroopsAndVehicles();
-            //TESTING END
-            mousePreviousPosX = mouseX;
-            mousePreviousPosY = mouseY;
-            drawSelect = true;
-        }
+    mousePreviousPosX = mouseX;
+    mousePreviousPosY = mouseY;
+};
+//Move vehicles/soldiers to clicked mouse position
+function moveSoldierTest(){
+    for (const item in selectedVehiclesAndSoldiers) {
+        selectedVehiclesAndSoldiers[item].movement(moveToX, moveToY);
     }
 };
 //Mouse movement on canvas
@@ -284,74 +435,53 @@ function mouseMoveHandler(event) {
     let rect = canvas.getBoundingClientRect();
     let mouseX = event.clientX - rect.left;
     let mouseY = event.clientY - rect.top;
-    if(mouseRightClick){
-        if(mouseX > mousePreviousPosX && mapTilesArray[mapTilesArray.length - 1].xPos < 2100){
-            MoveMap(4, 0);
+    //
+    if(mouseLeftButtonPressDown && !pressedButton){
+        drawSelect = true;
+    }
+    //
+    if(mouseRightButtonPressDown){
+        newPosX = Math.round(mouseX - mousePreviousPosX);
+        newPosY = Math.round(mouseY - mousePreviousPosY);
+        if(mapTilesArray[0].xPos < 0 - newPosX && mapTilesArray[0].xPos > -1200 - newPosX){
+            MoveMap(newPosX, 0);
         }
-        else if(mouseX < mousePreviousPosX && mapTilesArray[mapTilesArray.length - 1].xPos > 900){
-            MoveMap(-4, 0);
-        }
-        if(mouseY > mousePreviousPosY && mapTilesArray[mapTilesArray.length - 1].yPos < 2100){
-            MoveMap(0, 4);
-        }
-        else if(mouseY < mousePreviousPosY && mapTilesArray[mapTilesArray.length - 1].yPos > 580){
-            MoveMap(0, -4);
+        if(mapTilesArray[0].yPos < 0 - newPosY && mapTilesArray[0].yPos > -1460 - newPosY){
+            MoveMap(0, newPosY);
         }
         mousePreviousPosX = mouseX;
         mousePreviousPosY = mouseY;
     }
-    if(ShowTextIfMouseIsOver(mouseX, mouseY)){
-        showPrice = true;
-    }
-    else{
-        showPrice = false;
-    }
     mouseCurrentPosX = mouseX;
     mouseCurrentPosY = mouseY;
+};
+//Mouse STOP movement on canvas
+canvas.addEventListener("mousemove", mouseStopMoveHandler, false);
+function mouseStopMoveHandler(){
+    mouseIsmoving = false;
 };
 //Mouse button release
 canvas.addEventListener("mouseup", mouseUpHandler, false);
 function mouseUpHandler(event) {
-    if(event.button == "2"){
-        mouseRightClick = false;
-        return;
-    }
-    else if(event.button == "0"){
-        drawSelect = false;
-        CheckIfTroopsAndVehicleInsideRectangle();
-        return;
-    }
-};
-function CompareMouseLocationToButton(mouseX, mouseY){
-    for (const key in uiButtonLoc) {
-        if(mouseX >= uiButtonLoc[key].xStart && mouseX <= uiButtonLoc[key].xEnd && mouseY >= uiButtonLoc[key].yStart && mouseY <= uiButtonLoc[key].yEnd){
-            storeCurrentBuilding = uiButtonLoc[key];
-            return true;
-        }
-    }
-    return false;
-};
-function ShowTextIfMouseIsOver(mouseX, mouseY){
-    for (const key in uiButtonLoc) {
-        if(mouseX >= uiButtonLoc[key].xStart && mouseX <= uiButtonLoc[key].xEnd && mouseY >= uiButtonLoc[key].yStart && mouseY <= uiButtonLoc[key].yEnd){
-            storeCurrentBuildingCostToDisplay = uiButtonLoc[key].cost;
-            return true;
-        }
-    }
-    return false;
-};
-//This function is inside gameloop
-function PickAndDropBuilding(){
-    if(pickAndBuild){       
-        if(CheckIfYouAreOverBuildableArea() && false == player.cash - storeCurrentBuilding.cost < 0 ? true : false)
-        {
-            ctx.fillStyle = "green";
-        }
-        else{
-            ctx.fillStyle = "red";
-        }
-        ctx.fillRect(mouseCurrentPosX - storeCurrentBuilding.width / 2, mouseCurrentPosY - storeCurrentBuilding.height / 2, storeCurrentBuilding.width, storeCurrentBuilding.height);
-        ctx.drawImage(storeCurrentBuilding.imageTransparent, mouseCurrentPosX - storeCurrentBuilding.width / 2, mouseCurrentPosY - storeCurrentBuilding.height / 2, storeCurrentBuilding.width, storeCurrentBuilding.height);
+    switch(event.button){
+        case 2:
+            mouseRightButtonPressDown = false;
+            objectToDraw = false;
+            break;
+        case 0:
+            mouseLeftButtonPressDown = false;
+            //Check if there is any selected vehicles/Soldiers and move them to that location
+            if(selectedVehiclesAndSoldiers.length > 0 && !CheckIfClickedOnUiArea()){
+                moveToX = mouseCurrentPosX;
+                moveToY = mouseCurrentPosY;
+            }
+            if(drawSelect){
+                moveToX = undefined;
+                moveToY = undefined;
+                SelectVehiclesAndSoldiers();
+            }
+            drawSelect = false;
+            break;
     }
 };
 function CheckIfYouAreOverBuildableArea(){
@@ -368,7 +498,6 @@ function CheckIfYouAreOverBuildableArea(){
         }
     }
 };
-//
 function DrawRectangleToSelectArmyUnits(){
     if(drawSelect == true){
         ctx.beginPath();
@@ -377,33 +506,17 @@ function DrawRectangleToSelectArmyUnits(){
         ctx.stroke();
     }
 };
-function CheckIfTroopsAndVehicleInsideRectangle(){
-    if(mousePreviousPosX <= vehicleTest.x && mouseCurrentPosX >= vehicleTest.x &&  mousePreviousPosY <= vehicleTest.y && mouseCurrentPosY >= vehicleTest.y){
-        selectedVehicles.push(vehicleTest);
-        console.log(vehicleTest);
+function SelectVehiclesAndSoldiers(){
+    selectedVehiclesAndSoldiers = [];
+    for (let i = 0; i < storedVehiclesAndSoldiers.length; i++) {
+        if(mousePreviousPosX <= storedVehiclesAndSoldiers[i].x && mouseCurrentPosX >= storedVehiclesAndSoldiers[i].x &&  mousePreviousPosY <= storedVehiclesAndSoldiers[i].y && mouseCurrentPosY >= storedVehiclesAndSoldiers[i].y){
+            selectedVehiclesAndSoldiers.push(storedVehiclesAndSoldiers[i]);
+        }
     }
 };
-//TESTING TESTING
-function MoveSelectedTroopsAndVehicles(){
-        if(vehicleTest.x < mousePreviousPosX){
-            vehicleTest.x += 1;
-            console.log("x++");
-        }
-        else if(vehicleTest.x > mousePreviousPosX){
-            vehicleTest.x -= 1;
-            console.log("x--");
-        }
-        if(vehicleTest.y < mousePreviousPosY){
-            vehicleTest.y += 1;
-            console.log("y++");
-        }
-        else if(vehicleTest.y > mousePreviousPosY){
-            vehicleTest.y -= 1;
-            console.log("y--");
-        }
-};
-//
 function MoveMap(x, y){
+    rectLocationX -= x / 12.6;
+    rectLocationY -= y / 10.8;
     for (let i = 0; i < mapTilesArray.length; i++) {
         mapTilesArray[i].xPos += x;
         mapTilesArray[i].yPos += y;
@@ -416,6 +529,12 @@ function MoveMap(x, y){
             buildableArea[i].y += y;
         }
     }
+    for (const key in storedVehiclesAndSoldiers) {
+        storedVehiclesAndSoldiers[key].x += x;
+        storedVehiclesAndSoldiers[key].y += y;
+    }
+    moveToX += x;
+    moveToY += y;
 };
 function drawMap(){
     for (let i = 0; i < mapTilesArray.length; i++) {
@@ -429,11 +548,40 @@ function drawMiniMap(){
         miniMapTilesArray[i].minimizeMap();
     }
 };
+function drawCanvasLocationOnMiniMap(){
+    ctx.beginPath();
+    ctx.strokeStyle = "white";
+    ctx.rect(rectLocationX, rectLocationY, 85, 45);
+    ctx.stroke();
+};
 function drawBuildings(){
     for (let i = 0; i < buildingArray.length; i++) {
         buildingArray[i].draw();
     }
 };
+function DrawVehiclesAndSoldiers(){
+    for (let i = 0; i < storedVehiclesAndSoldiers.length; i++) {
+        storedVehiclesAndSoldiers[i].draw();
+    }
+};
+function LeftTopTextBox(){
+    for (let i = 0; i < informationText.length; i++) {
+        if(informationText.length >= 6){
+            informationText.shift();
+        }
+        ctx.fillStyle = informationText[i].color;
+        ctx.font = "15px Arial";
+        ctx.fillText(informationText[i].string, 10, yCoordinate * (i + 1));
+    }
+};
+function CheckIfClickedOnUiArea(){
+    if(mouseCurrentPosX > 700 && mouseCurrentPosX < 940 && mouseCurrentPosY > 300 && mouseCurrentPosY < 600){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
 function PositionOfDifferentTilesOnTheMap(xAxis, yAxis){
     const tileCoordinates = [
         //Coordinates for the brown tiles
