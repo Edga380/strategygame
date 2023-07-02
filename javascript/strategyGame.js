@@ -204,9 +204,9 @@ let enemyWall13 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 178
 let enemyWall14 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1788, 1478, "enemyWall", 0, undefined, 100);
 let enemyVehicleFactory01 = new BuildingObjects("./images/buildings/vehicleFactory.png", 90, 60, 1648, 1618, "enemyVehicleFactory", 0, undefined, 100);
 let enemySoldierBarracks01 = new BuildingObjects("./images/buildings/soldierBarracks.png", 60, 60, 1588, 1408, "enemySoldierBarracks", 0, undefined, 100);
-let enemyHarvestingBuilding01 = new BuildingObjects("./images/buildings/HarvestingBuilding.png", 105, 60, 1430, 1500, "enemyHarvestingBuilding", 0, undefined, 100);
-let enemyHarvestingBuilding02 = new BuildingObjects("./images/buildings/HarvestingBuilding.png", 105, 60, 1430, 1560, "enemyHarvestingBuilding", 0, undefined, 100);
-let enemyHarvestingBuilding03 = new BuildingObjects("./images/buildings/HarvestingBuilding.png", 105, 60, 1430, 1620, "enemyHarvestingBuilding", 0, undefined, 100);
+let enemyHarvestingBuilding01 = new BuildingObjects("./images/buildings/harvestingBuilding.png", 105, 60, 1430, 1500, "enemyHarvestingBuilding", 0, undefined, 100);
+let enemyHarvestingBuilding02 = new BuildingObjects("./images/buildings/harvestingBuilding.png", 105, 60, 1430, 1560, "enemyHarvestingBuilding", 0, undefined, 100);
+let enemyHarvestingBuilding03 = new BuildingObjects("./images/buildings/harvestingBuilding.png", 105, 60, 1430, 1620, "enemyHarvestingBuilding", 0, undefined, 100);
 enemyBuildings.push(enemyMainBuilding, enemySolarPanel01, enemySolarPanel02, enemySolarPanel03, enemySolarPanel04, enemySolarPanel05, 
     enemySolarPanel06, enemySolarPanel07, enemyWall01, enemyWall02, enemyWall03, enemyWall04, enemyWall05, enemyWall06, enemyWall07, 
     enemyWall08, enemyWall09, enemyWall10, enemyWall11, enemyWall12, enemyWall13, enemyWall14, enemyVehicleFactory01, enemySoldierBarracks01,
