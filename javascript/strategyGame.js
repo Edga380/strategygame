@@ -6,6 +6,8 @@ const CANVAS_WIDTH = canvas.width = 960;//960
 const CANVAS_HEIGHT = canvas.height = 640;//640
 //
 let player = {cash: 7803, energy: 0};
+let enemy = {cash: 10000};
+let enemyBuildings = [];
 //
 let storedVehiclesAndSoldiers = [];
 let selectedVehiclesAndSoldiers = [];
@@ -21,6 +23,7 @@ let tileLocOnTileMapImgX = 60;
 let tileLocOnTileMapImgY = 0;
 let rectLocationX = 750;
 let rectLocationY = 62;
+let tileMoveOver;
 //Mouse
 let mousePreviousPosX = 0;
 let mousePreviousPosY = 0;
@@ -45,7 +48,7 @@ const buttons = [];
 let pressedButton = false;
 const uiElements = [];
 //building
-const buildingArray = [];
+let buildingArray = [];
 const buildableArea = [];
 let storeCheckLimit = 0;
 //Button class
@@ -98,21 +101,27 @@ class Sprites {
         ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
     }
     movement(x, y){
-        let dx = x - this.x;
-        //console.log(dx);
-        let dy = y - this.y;
-        //console.log(dy);
-        let distance = Math.sqrt(dx * dx + dy * dy);
-        //console.log(distance);
-        if(distance > this.speed){
-            let ratio = this.speed / distance;
-            //console.log(ratio);
-            let moveX = dx * ratio;
-            //console.log(moveX);
-            let moveY = dy * ratio;
-            //console.log(moveY);
-            this.x += moveX;
-            this.y += moveY;
+        console.log("Movement!");
+        if(CollisionDetection(this.x, this.y, this.width, this.height)){
+
+        }
+        else{
+            let dx = x - this.x;
+            //console.log(dx);
+            let dy = y - this.y;
+            //console.log(dy);
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            //console.log(distance);
+            if(distance > this.speed){
+                let ratio = this.speed / distance;
+                //console.log(ratio);
+                let moveX = dx * ratio;
+                //console.log(moveX);
+                let moveY = dy * ratio;
+                //console.log(moveY);
+                this.x += moveX;
+                this.y += moveY;
+            }
         }
     }
 }
@@ -137,7 +146,7 @@ class BuildingObjects {
 }
 //DrawMap class
 class MapTilesObj {
-    constructor(width, height, xPos, yPos, XPosOnTileMap, YPosOnTileMap, tileSizeXAxis, tileSizeYAxis, src){
+    constructor(width, height, xPos, yPos, XPosOnTileMap, YPosOnTileMap, tileSizeXAxis, tileSizeYAxis, src, tileMoveOver){
         this.width = width;
         this.height = height;
         this.xPos = xPos;
@@ -148,6 +157,7 @@ class MapTilesObj {
         this.tileSizeYAxis = tileSizeYAxis;
         this.image = new Image();
         this.image.src = src;
+        this.tileMoveOver = tileMoveOver;
     }
 
     draw(){
@@ -163,12 +173,44 @@ class MapTilesObj {
 loadMapTiles();
 GetDarkBrownTilesLocations();
 LoadUi();
-//Load base
+//Load Player base
 let mainBuilding = new BuildingObjects("./images/buildings/mainBuilding.png", 90, 90, 360, 0, "mainBuilding", 0, undefined, 100);
 let solarPanel01 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 328, 0, "solarPanel", 0, undefined, 100);
 let solarPanel02 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 328, 32, "solarPanel", 0, undefined, 100);
 let solarPanel03 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 328, 64, "solarPanel", 0, undefined, 100);
 buildingArray.push(mainBuilding, solarPanel01, solarPanel02, solarPanel03);
+//Load Enemy base
+let enemyMainBuilding = new BuildingObjects("./images/buildings/mainBuilding.png", 90, 90, 1680, 1500, "enemyMainBuilding", 0, undefined, 100);
+let enemySolarPanel01 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 1680, 1468, "enemySolarPanel", 0, undefined, 100);
+let enemySolarPanel02 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 1712, 1468, "enemySolarPanel", 0, undefined, 100);
+let enemySolarPanel03 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 1744, 1468, "enemySolarPanel", 0, undefined, 100);
+let enemySolarPanel04 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 1648, 1468, "enemySolarPanel", 0, undefined, 100);
+let enemySolarPanel05 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 1648, 1500, "enemySolarPanel", 0, undefined, 100);
+let enemySolarPanel06 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 1648, 1532, "enemySolarPanel", 0, undefined, 100);
+let enemySolarPanel07 = new BuildingObjects("./images/buildings/solarPanel.png", 32, 32, 1648, 1564, "enemySolarPanel", 0, undefined, 100);
+let enemyWall01 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1648, 1598, "enemyWall", 0, undefined, 100);
+let enemyWall02 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1668, 1598, "enemyWall", 0, undefined, 100);
+let enemyWall03 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1688, 1598, "enemyWall", 0, undefined, 100);
+let enemyWall04 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1708, 1598, "enemyWall", 0, undefined, 100);
+let enemyWall05 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1728, 1598, "enemyWall", 0, undefined, 100);
+let enemyWall06 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1748, 1598, "enemyWall", 0, undefined, 100);
+let enemyWall07 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1768, 1598, "enemyWall", 0, undefined, 100);
+let enemyWall08 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1788, 1598, "enemyWall", 0, undefined, 100);
+let enemyWall09 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1788, 1578, "enemyWall", 0, undefined, 100);
+let enemyWall10 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1788, 1558, "enemyWall", 0, undefined, 100);
+let enemyWall11 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1788, 1538, "enemyWall", 0, undefined, 100);
+let enemyWall12 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1788, 1518, "enemyWall", 0, undefined, 100);
+let enemyWall13 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1788, 1498, "enemyWall", 0, undefined, 100);
+let enemyWall14 = new BuildingObjects("./images/buildings/wall.png", 20, 20, 1788, 1478, "enemyWall", 0, undefined, 100);
+let enemyVehicleFactory01 = new BuildingObjects("./images/buildings/vehicleFactory.png", 90, 60, 1648, 1618, "enemyVehicleFactory", 0, undefined, 100);
+let enemySoldierBarracks01 = new BuildingObjects("./images/buildings/soldierBarracks.png", 60, 60, 1588, 1408, "enemySoldierBarracks", 0, undefined, 100);
+let enemyHarvestingBuilding01 = new BuildingObjects("./images/buildings/HarvestingBuilding.png", 105, 60, 1430, 1500, "enemyHarvestingBuilding", 0, undefined, 100);
+let enemyHarvestingBuilding02 = new BuildingObjects("./images/buildings/HarvestingBuilding.png", 105, 60, 1430, 1560, "enemyHarvestingBuilding", 0, undefined, 100);
+let enemyHarvestingBuilding03 = new BuildingObjects("./images/buildings/HarvestingBuilding.png", 105, 60, 1430, 1620, "enemyHarvestingBuilding", 0, undefined, 100);
+enemyBuildings.push(enemyMainBuilding, enemySolarPanel01, enemySolarPanel02, enemySolarPanel03, enemySolarPanel04, enemySolarPanel05, 
+    enemySolarPanel06, enemySolarPanel07, enemyWall01, enemyWall02, enemyWall03, enemyWall04, enemyWall05, enemyWall06, enemyWall07, 
+    enemyWall08, enemyWall09, enemyWall10, enemyWall11, enemyWall12, enemyWall13, enemyWall14, enemyVehicleFactory01, enemySoldierBarracks01,
+    enemyHarvestingBuilding01, enemyHarvestingBuilding02, enemyHarvestingBuilding03);
 //
 function gameLoop(){
     ctx.clearRect(0, 0 , CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -193,10 +235,24 @@ function gameLoop(){
     drawMiniMap();
     drawCanvasLocationOnMiniMap();
     //Layer06
+    ctx.beginPath();
+    ctx.strokeStyle = "black";
+    ctx.rect(480, 240, 60, 60);
+    ctx.stroke();
     DrawBuildableObject();
     requestAnimationFrame(gameLoop);
 };
 gameLoop();
+//Testing path finding
+function CollisionDetection(vehicleX, vehicleY, vehicleWidth, vehicleHeight){
+    for (let i = 0; i < mapTilesArray.length; i++) {
+        if(mapTilesArray[i].xPos <= vehicleX && mapTilesArray[i].xPos + mapTilesArray[i].tileSizeXAxis >= vehicleX && 
+            mapTilesArray[i].yPos <= vehicleY && mapTilesArray[i].yPos + mapTilesArray[i].tileSizeYAxis >= vehicleY &&
+            mapTilesArray[i].YPosOnTileMap > 0){
+            console.log("Collision! = " + i);
+        }
+    }
+};
 //
 function loadMapTiles(){
     for (let eachRow = 0; eachRow < mapTilesCountWidth; eachRow++) {
@@ -204,7 +260,7 @@ function loadMapTiles(){
             let xAxis = 0 + mapTileWidth * eachCollum;
             let yAxis = 0 + mapTileHeight * eachRow;
             PositionOfDifferentTilesOnTheMap(xAxis, yAxis);
-            const mapTileObjects = new MapTilesObj(mapTileWidth, mapTileHeight, 0 + mapTileWidth * eachCollum, 0 + mapTileHeight * eachRow, tileLocOnTileMapImgX, tileLocOnTileMapImgY, mapTileWidth, mapTileHeight, "./images/tileMap/tileMap.png");
+            const mapTileObjects = new MapTilesObj(mapTileWidth, mapTileHeight, 0 + mapTileWidth * eachCollum, 0 + mapTileHeight * eachRow, tileLocOnTileMapImgX, tileLocOnTileMapImgY, mapTileWidth, mapTileHeight, "./images/tileMap/tileMap.png", tileMoveOver);
             if(loadMiniMap){
                 mapTileObjects.xPos += 9000;
                 mapTileObjects.yPos += 750;
@@ -221,6 +277,7 @@ function loadMapTiles(){
         loadMiniMap = true;
         loadMapTiles();
     }
+    console.log(mapTilesArray);
 };
 function GetDarkBrownTilesLocations(){
     for (let i = 0; i < mapTilesArray.length; i++) {
@@ -265,7 +322,7 @@ function DragAndBuild(currentObject, src, width, height, x, y, tag, cost, limit)
                         soldierBuildingY = buildingArray[building].y;
                     }
                 }
-                const newSoldier = new Sprites(currentObject.image.src, soldierBuildingX + 60, soldierBuildingY + 20, currentObject.width, currentObject.height, 2);
+                const newSoldier = new Sprites(currentObject.image.src, soldierBuildingX + 60, soldierBuildingY, currentObject.width, currentObject.height, 2);
                 storedVehiclesAndSoldiers.push(newSoldier);
                 informationText.push({string: "Training!", color: "green"});
                 player.cash -= currentObject.cost;
@@ -287,7 +344,7 @@ function DragAndBuild(currentObject, src, width, height, x, y, tag, cost, limit)
                         vehicleBuildingY = buildingArray[building].y;
                     }
                 }
-                const newVehicle = new Sprites(currentObject.image.src, vehicleBuildingX + 85, vehicleBuildingY + 20, currentObject.width, currentObject.height, 2);
+                const newVehicle = new Sprites(currentObject.image.src, vehicleBuildingX + 85, vehicleBuildingY, currentObject.width, currentObject.height, 2);
                 storedVehiclesAndSoldiers.push(newVehicle);
                 informationText.push({string: "Manufacturing!", color: "green"});
                 player.cash -= currentObject.cost;
@@ -319,9 +376,7 @@ function DrawBuildableObject(){
 };
 //CHECK IF BUILDING IS PRESSENT IF YES YOU CAN TRAIN OR MANUFACTURE
 function CheckIfBuildingIsPresent(tag){
-    console.log(buildingArray);
     for (const building in buildingArray) {
-        console.log(buildingArray[building].tag);
         if(buildingArray[building].tag == tag){
             return true;
         }
@@ -400,7 +455,6 @@ canvas.addEventListener("contextmenu", function(event) {
 //Mouse pressdown
 canvas.addEventListener("mousedown", mouseDownHandler, false);
 function mouseDownHandler(event) {
-    console.log(storedVehiclesAndSoldiers);
     let rect = canvas.getBoundingClientRect();
     let mouseX = event.clientX - rect.left;
     let mouseY = event.clientY - rect.top;
@@ -413,7 +467,7 @@ function mouseDownHandler(event) {
             if(objectToDraw){
                 Build();
             }
-            //Checks if any of UI button is pressed
+            //Checks if any of UI buttons are pressed
             CheckButtonOnClick(mouseX, mouseY);
             break;
         case 1:
@@ -472,8 +526,8 @@ function mouseUpHandler(event) {
             mouseLeftButtonPressDown = false;
             //Check if there is any selected vehicles/Soldiers and move them to that location
             if(selectedVehiclesAndSoldiers.length > 0 && !CheckIfClickedOnUiArea()){
-                moveToX = mouseCurrentPosX;
-                moveToY = mouseCurrentPosY;
+                moveToX = mouseCurrentPosX - 30;
+                moveToY = mouseCurrentPosY - 30;
             }
             if(drawSelect){
                 moveToX = undefined;
@@ -524,6 +578,10 @@ function MoveMap(x, y){
             buildingArray[i].x += x;
             buildingArray[i].y += y;
         }
+        if(enemyBuildings[i] != undefined){
+            enemyBuildings[i].x += x;
+            enemyBuildings[i].y += y;
+        }
         if(buildableArea[i] != undefined){
             buildableArea[i].x += x;
             buildableArea[i].y += y;
@@ -558,10 +616,15 @@ function drawBuildings(){
     for (let i = 0; i < buildingArray.length; i++) {
         buildingArray[i].draw();
     }
+    for (let i = 0; i < enemyBuildings.length; i++) {
+        enemyBuildings[i].draw();
+    }
 };
 function DrawVehiclesAndSoldiers(){
-    for (let i = 0; i < storedVehiclesAndSoldiers.length; i++) {
-        storedVehiclesAndSoldiers[i].draw();
+    if(storedVehiclesAndSoldiers.length > 0){
+        for (let i = 0; i < storedVehiclesAndSoldiers.length; i++) {
+            storedVehiclesAndSoldiers[i].draw();
+        }
     }
 };
 function LeftTopTextBox(){
@@ -585,126 +648,126 @@ function CheckIfClickedOnUiArea(){
 function PositionOfDifferentTilesOnTheMap(xAxis, yAxis){
     const tileCoordinates = [
         //Coordinates for the brown tiles
-        { xRange: [240, 1200], y: 0, imgX: 0, imgY: 0}, { xRange: [300, 1200], y: 60, imgX: 0, imgY: 0}, { xRange: [300, 1080], y: 120, imgX: 0, imgY: 0},
-        { xRange: [300, 1020], y: 180, imgX: 0, imgY: 0}, { xRange: [300, 360], y: 240, imgX: 0, imgY: 0}, { xRange: [600, 600], y: 240, imgX: 0, imgY: 0},
-        { xRange: [1620, 2100], y: 0, imgX: 0, imgY: 0}, { xRange: [1620, 2100], y: 60, imgX: 0, imgY: 0}, { xRange: [1620, 2100], y: 120, imgX: 0, imgY: 0},
-        { xRange: [1620, 2100], y: 180, imgX: 0, imgY: 0}, { xRange: [1620, 2100], y: 240, imgX: 0, imgY: 0}, { xRange: [1620, 2100], y: 300, imgX: 0, imgY: 0},
-        { xRange: [1620, 2100], y: 360, imgX: 0, imgY: 0}, { xRange: [0, 0], y: 2040, imgX: 0, imgY: 0}, { xRange: [0, 60], y: 1980, imgX: 0, imgY: 0},
-        { xRange: [0, 120], y: 1920, imgX: 0, imgY: 0}, { xRange: [0, 180], y: 1620, imgX: 0, imgY: 0}, { xRange: [0, 240], y: 1680, imgX: 0, imgY: 0},
-        { xRange: [0, 420], y: 1740, imgX: 0, imgY: 0}, { xRange: [0, 360], y: 1800, imgX: 0, imgY: 0}, { xRange: [0, 360], y: 1860, imgX: 0, imgY: 0},
-        { xRange: [660, 900], y: 900, imgX: 0, imgY: 0}, { xRange: [660, 900], y: 960, imgX: 0, imgY: 0}, { xRange: [660, 900], y: 1020, imgX: 0, imgY: 0},
-        { xRange: [660, 900], y: 1080, imgX: 0, imgY: 0}, { xRange: [660, 900], y: 1140, imgX: 0, imgY: 0}, { xRange: [1560, 1680], y: 420, imgX: 0, imgY: 0},
-        { xRange: [1500, 1620], y: 480, imgX: 0, imgY: 0}, { xRange: [1680, 1740], y: 1200, imgX: 0, imgY: 0}, { xRange: [1680, 1740], y: 1260, imgX: 0, imgY: 0},
-        { xRange: [1680, 1800], y: 1320, imgX: 0, imgY: 0}, { xRange: [1620, 1800], y: 1380, imgX: 0, imgY: 0}, { xRange: [1560, 1800], y: 1440, imgX: 0, imgY: 0},
-        { xRange: [1440, 1860], y: 1500, imgX: 0, imgY: 0}, { xRange: [1440, 1860], y: 1560, imgX: 0, imgY: 0}, { xRange: [1440, 1860], y: 1620, imgX: 0, imgY: 0},
-        { xRange: [1620, 1740], y: 1680, imgX: 0, imgY: 0}, { xRange: [1680, 1680], y: 1740, imgX: 0, imgY: 0},
+        { xRange: [240, 1200], y: 0, imgX: 0, imgY: 0, moveOver: true}, { xRange: [300, 1200], y: 60, imgX: 0, imgY: 0, moveOver: true}, { xRange: [300, 1080], y: 120, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [300, 1020], y: 180, imgX: 0, imgY: 0, moveOver: true}, { xRange: [300, 360], y: 240, imgX: 0, imgY: 0, moveOver: true}, { xRange: [600, 600], y: 240, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [1620, 2100], y: 0, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1620, 2100], y: 60, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1620, 2100], y: 120, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [1620, 2100], y: 180, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1620, 2100], y: 240, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1620, 2100], y: 300, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [1620, 2100], y: 360, imgX: 0, imgY: 0, moveOver: true}, { xRange: [0, 0], y: 2040, imgX: 0, imgY: 0, moveOver: true}, { xRange: [0, 60], y: 1980, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [0, 120], y: 1920, imgX: 0, imgY: 0, moveOver: true}, { xRange: [0, 180], y: 1620, imgX: 0, imgY: 0, moveOver: true}, { xRange: [0, 240], y: 1680, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [0, 420], y: 1740, imgX: 0, imgY: 0, moveOver: true}, { xRange: [0, 360], y: 1800, imgX: 0, imgY: 0, moveOver: true}, { xRange: [0, 360], y: 1860, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [660, 900], y: 900, imgX: 0, imgY: 0, moveOver: true}, { xRange: [660, 900], y: 960, imgX: 0, imgY: 0, moveOver: true}, { xRange: [660, 900], y: 1020, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [660, 900], y: 1080, imgX: 0, imgY: 0, moveOver: true}, { xRange: [660, 900], y: 1140, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1560, 1680], y: 420, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [1500, 1620], y: 480, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1680, 1740], y: 1200, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1680, 1740], y: 1260, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [1680, 1800], y: 1320, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1620, 1800], y: 1380, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1560, 1800], y: 1440, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [1440, 1860], y: 1500, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1440, 1860], y: 1560, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1440, 1860], y: 1620, imgX: 0, imgY: 0, moveOver: true},
+        { xRange: [1620, 1740], y: 1680, imgX: 0, imgY: 0, moveOver: true}, { xRange: [1680, 1680], y: 1740, imgX: 0, imgY: 0, moveOver: true},
         //Top left ground, left side S
-        { xRange: [120, 120], y: 0, imgX: 180, imgY: 600}, { xRange: [180, 180], y: 0, imgX: 240, imgY: 600}, { xRange: [120, 120], y: 60, imgX: 180, imgY: 660},
-        { xRange: [180, 180], y: 60, imgX: 240, imgY: 660}, { xRange: [240, 240], y: 60, imgX: 300, imgY: 660}, { xRange: [180, 180], y: 120, imgX: 240, imgY: 720},
-        { xRange: [240, 240], y: 120, imgX: 300, imgY: 720},
+        { xRange: [120, 120], y: 0, imgX: 180, imgY: 600, moveOver: false}, { xRange: [180, 180], y: 0, imgX: 240, imgY: 600, moveOver: false}, { xRange: [120, 120], y: 60, imgX: 180, imgY: 660, moveOver: false},
+        { xRange: [180, 180], y: 60, imgX: 240, imgY: 660, moveOver: false}, { xRange: [240, 240], y: 60, imgX: 300, imgY: 660, moveOver: false}, { xRange: [180, 180], y: 120, imgX: 240, imgY: 720, moveOver: false},
+        { xRange: [240, 240], y: 120, imgX: 300, imgY: 720, moveOver: false},
         //Straight 0deg
-        { xRange: [480, 480], y: 240, imgX: 0, imgY: 60}, { xRange: [1680, 1680], y: 1800, imgX: 0, imgY: 60},
+        { xRange: [480, 480], y: 240, imgX: 0, imgY: 60, moveOver: false}, { xRange: [1680, 1680], y: 1800, imgX: 0, imgY: 60, moveOver: false}, { xRange: [2100, 2100], y: 420, imgX: 0, imgY: 60, moveOver: false},
         //Straight 90deg
-        { xRange: [540, 540], y: 300, imgX: 0, imgY: 240}, { xRange: [1440, 1440], y: 480, imgX: 0, imgY: 240}, { xRange: [1380, 1380], y: 1620, imgX: 0, imgY: 240},
-        { xRange: [1380, 1380], y: 1560, imgX: 0, imgY: 240}, { xRange: [1380, 1380], y: 1500, imgX: 0, imgY: 240}, { xRange: [1620, 1620], y: 1260, imgX: 0, imgY: 240},
-        { xRange: [1620, 1620], y: 1200, imgX: 0, imgY: 240}, { xRange: [1560, 1560], y: 240, imgX: 0, imgY: 240},
+        { xRange: [540, 540], y: 300, imgX: 0, imgY: 240, moveOver: false}, { xRange: [1440, 1440], y: 480, imgX: 0, imgY: 240, moveOver: false}, { xRange: [1380, 1380], y: 1620, imgX: 0, imgY: 240, moveOver: false},
+        { xRange: [1380, 1380], y: 1560, imgX: 0, imgY: 240, moveOver: false}, { xRange: [1380, 1380], y: 1500, imgX: 0, imgY: 240, moveOver: false}, { xRange: [1620, 1620], y: 1260, imgX: 0, imgY: 240, moveOver: false},
+        { xRange: [1620, 1620], y: 1200, imgX: 0, imgY: 240, moveOver: false}, { xRange: [1560, 1560], y: 240, imgX: 0, imgY: 240, moveOver: false},
         //Straight 180deg
-        { xRange: [420, 420], y: 1680, imgX: 60, imgY: 120},
+        { xRange: [420, 420], y: 1680, imgX: 60, imgY: 120, moveOver: false},
         //Straight -90deg
-        { xRange: [1260, 1260], y: 0, imgX: 180, imgY: 180}, { xRange: [1260, 1260], y: 60, imgX: 180, imgY: 180}, { xRange: [1800, 1800], y: 1200, imgX: 180, imgY: 180},
-        { xRange: [1860, 1860], y: 1320, imgX: 180, imgY: 180}, { xRange: [1860, 1860], y: 1380, imgX: 180, imgY: 180},
-        //Passage left 90deg
-        { xRange: [240, 240], y: 180, imgX: 180, imgY: 360}, { xRange: [1560, 1560], y: 0, imgX: 180, imgY: 360}, { xRange: [600, 600], y: 900, imgX: 180, imgY: 360},
-        //Passage left flipped 90deg
-        { xRange: [960, 960], y: 1140, imgX: 240, imgY: 300}, { xRange: [1920, 1920], y: 1620, imgX: 240, imgY: 300},
-        //Passage right 90deg
-        { xRange: [240, 240], y: 240, imgX: 180, imgY: 300},
-        //Passage right flipped 90deg
-        { xRange: [960, 960], y: 900, imgX: 240, imgY: 360}, { xRange: [1920, 1920], y: 1500, imgX: 240, imgY: 360},
+        { xRange: [1260, 1260], y: 0, imgX: 180, imgY: 180, moveOver: false}, { xRange: [1260, 1260], y: 60, imgX: 180, imgY: 180, moveOver: false}, { xRange: [1800, 1800], y: 1200, imgX: 180, imgY: 180, moveOver: false},
+        { xRange: [1860, 1860], y: 1320, imgX: 180, imgY: 180, moveOver: false}, { xRange: [1860, 1860], y: 1380, imgX: 180, imgY: 180, moveOver: false},
         //Outer corner 0deg
-        { xRange: [240, 240], y: 300, imgX: 60, imgY: 540}, { xRange: [540, 540], y: 360, imgX: 60, imgY: 540}, { xRange: [1440, 1440], y: 540, imgX: 60, imgY: 540},
-        { xRange: [600, 600], y: 1200, imgX: 60, imgY: 540}, { xRange: [1380, 1380], y: 1680, imgX: 60, imgY: 540}, { xRange: [1560, 1560], y: 1740, imgX: 60, imgY: 540},
-        { xRange: [1620, 1620], y: 1800, imgX: 60, imgY: 540},
+        { xRange: [240, 240], y: 300, imgX: 60, imgY: 540, moveOver: false}, { xRange: [540, 540], y: 360, imgX: 60, imgY: 540, moveOver: false}, { xRange: [1440, 1440], y: 540, imgX: 60, imgY: 540, moveOver: false},
+        { xRange: [600, 600], y: 1200, imgX: 60, imgY: 540, moveOver: false}, { xRange: [1380, 1380], y: 1680, imgX: 60, imgY: 540, moveOver: false}, { xRange: [1560, 1560], y: 1740, imgX: 60, imgY: 540, moveOver: false},
+        { xRange: [1620, 1620], y: 1800, imgX: 60, imgY: 540, moveOver: false},
         //Outer corner 90deg
-        { xRange: [420, 420], y: 300, imgX: 0, imgY: 540}, { xRange: [1260, 1260], y: 120, imgX: 0, imgY: 540}, { xRange: [960, 960], y: 1200, imgX: 0, imgY: 540},
-        { xRange: [1920, 1920], y: 1680, imgX: 0, imgY: 540}, { xRange: [420, 420], y: 1920, imgX: 0, imgY: 540},
+        { xRange: [420, 420], y: 300, imgX: 0, imgY: 540, moveOver: false}, { xRange: [1260, 1260], y: 120, imgX: 0, imgY: 540, moveOver: false}, { xRange: [960, 960], y: 1200, imgX: 0, imgY: 540, moveOver: false},
+        { xRange: [1920, 1920], y: 1680, imgX: 0, imgY: 540, moveOver: false}, { xRange: [420, 420], y: 1920, imgX: 0, imgY: 540, moveOver: false},
         //Outer corner 180deg
-        { xRange: [600, 600], y: 840, imgX: 120, imgY: 540}, { xRange: [1380, 1380], y: 1440, imgX: 120, imgY: 540}, { xRange: [1620, 1620], y: 1140, imgX: 120, imgY: 540},
+        { xRange: [600, 600], y: 840, imgX: 120, imgY: 540, moveOver: false}, { xRange: [1380, 1380], y: 1440, imgX: 120, imgY: 540, moveOver: false}, { xRange: [1620, 1620], y: 1140, imgX: 120, imgY: 540, moveOver: false},
         //Outer corner 270deg
-        { xRange: [480, 480], y: 1680, imgX: 180, imgY: 540}, { xRange: [0, 0], y: 1500, imgX: 180, imgY: 540}, { xRange: [960, 960], y: 840, imgX: 180, imgY: 540},
-        { xRange: [1800, 1800], y: 1140, imgX: 180, imgY: 540}, { xRange: [1860, 1860], y: 1260, imgX: 180, imgY: 540}, { xRange: [1920, 1920], y: 1440, imgX: 180, imgY: 540},
+        { xRange: [480, 480], y: 1680, imgX: 180, imgY: 540, moveOver: false}, { xRange: [0, 0], y: 1500, imgX: 180, imgY: 540, moveOver: false}, { xRange: [960, 960], y: 840, imgX: 180, imgY: 540, moveOver: false},
+        { xRange: [1800, 1800], y: 1140, imgX: 180, imgY: 540, moveOver: false}, { xRange: [1860, 1860], y: 1260, imgX: 180, imgY: 540, moveOver: false}, { xRange: [1920, 1920], y: 1440, imgX: 180, imgY: 540, moveOver: false},
         //Inner corner 0deg
-        { xRange: [420, 420], y: 240, imgX: 0, imgY: 480}, { xRange: [60, 60], y: 2040, imgX: 0, imgY: 480},
+        { xRange: [420, 420], y: 240, imgX: 0, imgY: 480, moveOver: false}, { xRange: [60, 60], y: 2040, imgX: 0, imgY: 480, moveOver: false},
         //Inner corner 90deg
-        { xRange: [540, 540], y: 240, imgX: 60, imgY: 480}, { xRange: [1560, 1560], y: 1680, imgX: 60, imgY: 480}, { xRange: [1620, 1620], y: 1740, imgX: 60, imgY: 480},
+        { xRange: [540, 540], y: 240, imgX: 60, imgY: 480, moveOver: false}, { xRange: [1560, 1560], y: 1680, imgX: 60, imgY: 480, moveOver: false}, { xRange: [1620, 1620], y: 1740, imgX: 60, imgY: 480, moveOver: false},
         //Inner corner 180deg
-        { xRange: [0, 0], y: 1560, imgX: 120, imgY: 480}, { xRange: [1800, 1800], y: 1260, imgX: 120, imgY: 480}, { xRange: [1860, 1860], y: 1440, imgX: 120, imgY: 480},
+        { xRange: [0, 0], y: 1560, imgX: 120, imgY: 480, moveOver: false}, { xRange: [1800, 1800], y: 1260, imgX: 120, imgY: 480, moveOver: false}, { xRange: [1860, 1860], y: 1440, imgX: 120, imgY: 480, moveOver: false},
         //Inner corner 180deg
         { xRange: [1620, 1620], y: 1320, imgX: 180, imgY: 480},
         //Passage right 0deg
-        { xRange: [360, 360], y: 300, imgX: 120, imgY: 300}, { xRange: [1020, 1020], y: 240, imgX: 120, imgY: 300}, { xRange: [2040, 2040], y: 420, imgX: 120, imgY: 300},
-        { xRange: [900, 900], y: 1200, imgX: 120, imgY: 300}, { xRange: [1500, 1500], y: 1680, imgX: 120, imgY: 300}, { xRange: [360, 360], y: 1920, imgX: 120, imgY: 300},
-        { xRange: [1620, 1620], y: 540, imgX: 120, imgY: 300},
+        { xRange: [360, 360], y: 300, imgX: 120, imgY: 300, moveOver: true}, { xRange: [1020, 1020], y: 240, imgX: 120, imgY: 300, moveOver: true}, { xRange: [2040, 2040], y: 420, imgX: 120, imgY: 300, moveOver: true},
+        { xRange: [900, 900], y: 1200, imgX: 120, imgY: 300, moveOver: true}, { xRange: [1500, 1500], y: 1680, imgX: 120, imgY: 300, moveOver: true}, { xRange: [360, 360], y: 1920, imgX: 120, imgY: 300, moveOver: true},
+        { xRange: [1620, 1620], y: 540, imgX: 120, imgY: 300, moveOver: true},
         //Passage right 90deg
-        { xRange: [1560, 1560], y: 180, imgX: 180, imgY: 300}, { xRange: [600, 600], y: 1140, imgX: 180, imgY: 300},
+        { xRange: [1560, 1560], y: 180, imgX: 180, imgY: 300, moveOver: true}, { xRange: [600, 600], y: 1140, imgX: 180, imgY: 300, moveOver: true},
+        //Passage left 90deg
+        { xRange: [240, 240], y: 180, imgX: 180, imgY: 360, moveOver: true}, { xRange: [1560, 1560], y: 0, imgX: 180, imgY: 360, moveOver: true}, { xRange: [600, 600], y: 900, imgX: 180, imgY: 360, moveOver: true},
+        //Passage left flipped 90deg
+        { xRange: [960, 960], y: 1140, imgX: 240, imgY: 300, moveOver: true}, { xRange: [1920, 1920], y: 1620, imgX: 240, imgY: 300, moveOver: true},
+        //Passage right 90deg
+        { xRange: [240, 240], y: 240, imgX: 180, imgY: 300, moveOver: true},
+        //Passage right flipped 90deg
+        { xRange: [960, 960], y: 900, imgX: 240, imgY: 360, moveOver: true}, { xRange: [1920, 1920], y: 1500, imgX: 240, imgY: 360, moveOver: true},
         //Passage left 180deg
-        { xRange: [180, 180], y: 1560, imgX: 120, imgY: 360},
+        { xRange: [180, 180], y: 1560, imgX: 120, imgY: 360, moveOver: true},
         //Passage left 0deg
-        { xRange: [300, 300], y: 300, imgX: 0, imgY: 300}, { xRange: [780, 780], y: 240, imgX: 0, imgY: 300}, { xRange: [1860, 1860], y: 420, imgX: 0, imgY: 300},
-        { xRange: [660, 660], y: 1200, imgX: 0, imgY: 300}, { xRange: [1440, 1440], y: 1680, imgX: 0, imgY: 300}, { xRange: [300, 300], y: 1920, imgX: 0, imgY: 300},
-        { xRange: [1500, 1500], y: 540, imgX: 0, imgY: 300},
+        { xRange: [300, 300], y: 300, imgX: 0, imgY: 300, moveOver: true}, { xRange: [780, 780], y: 240, imgX: 0, imgY: 300, moveOver: true}, { xRange: [1860, 1860], y: 420, imgX: 0, imgY: 300, moveOver: true},
+        { xRange: [660, 660], y: 1200, imgX: 0, imgY: 300, moveOver: true}, { xRange: [1440, 1440], y: 1680, imgX: 0, imgY: 300, moveOver: true}, { xRange: [300, 300], y: 1920, imgX: 0, imgY: 300, moveOver: true},
+        { xRange: [1500, 1500], y: 540, imgX: 0, imgY: 300, moveOver: true},
         //Passage left flipped 0deg
-        { xRange: [60, 60], y: 1560, imgX: 0, imgY: 360}, { xRange: [660, 660], y: 840, imgX: 0, imgY: 360}, { xRange: [1680, 1680], y: 1140, imgX: 0, imgY: 360},
+        { xRange: [60, 60], y: 1560, imgX: 0, imgY: 360, moveOver: true}, { xRange: [660, 660], y: 840, imgX: 0, imgY: 360, moveOver: true}, { xRange: [1680, 1680], y: 1140, imgX: 0, imgY: 360, moveOver: true},
         //Passage right flipped 0deg
-        { xRange: [900, 900], y: 840, imgX: 120, imgY: 360}, { xRange: [1740, 1740], y: 1140, imgX: 120, imgY: 360},
-        //Mid passage 0deg
-        { xRange: [840, 960], y: 240, imgX: 60, imgY: 300}, { xRange: [1920, 1980], y: 420, imgX: 60, imgY: 300}, { xRange: [720, 840], y: 1200, imgX: 60, imgY: 300},
-        { xRange: [1560, 1560], y: 540, imgX: 60, imgY: 300},
-        //Mid passage 90deg
-        { xRange: [1560, 1560], y: 60, imgX: 300, imgY: 300}, { xRange: [1560, 1560], y: 120, imgX: 300, imgY: 300}, { xRange: [600, 600], y: 1080, imgX: 300, imgY: 300},
-        { xRange: [600, 600], y: 1020, imgX: 300, imgY: 300}, { xRange: [600, 600], y: 960, imgX: 300, imgY: 300},
-        //Mid passage 180deg
-        { xRange: [120, 120], y: 1560, imgX: 60, imgY: 360}, { xRange: [720, 840], y: 840, imgX: 60, imgY: 360},
-        //Mid passage -90deg
-        { xRange: [960, 960], y: 1080, imgX: 300, imgY: 360}, { xRange: [960, 960], y: 1020, imgX: 300, imgY: 360}, { xRange: [960, 960], y: 960, imgX: 300, imgY: 360},
-        { xRange: [1920, 1920], y: 1560, imgX: 300, imgY: 360},
+        { xRange: [900, 900], y: 840, imgX: 120, imgY: 360, moveOver: true}, { xRange: [1740, 1740], y: 1140, imgX: 120, imgY: 360, moveOver: true},
+        //Passage mid 0deg
+        { xRange: [840, 960], y: 240, imgX: 60, imgY: 300, moveOver: true}, { xRange: [1920, 1980], y: 420, imgX: 60, imgY: 300, moveOver: true}, { xRange: [720, 840], y: 1200, imgX: 60, imgY: 300, moveOver: true},
+        { xRange: [1560, 1560], y: 540, imgX: 60, imgY: 300, moveOver: true},
+        //Passage mid 90deg
+        { xRange: [1560, 1560], y: 60, imgX: 300, imgY: 300, moveOver: true}, { xRange: [1560, 1560], y: 120, imgX: 300, imgY: 300, moveOver: true}, { xRange: [600, 600], y: 1080, imgX: 300, imgY: 300, moveOver: true},
+        { xRange: [600, 600], y: 1020, imgX: 300, imgY: 300, moveOver: true}, { xRange: [600, 600], y: 960, imgX: 300, imgY: 300, moveOver: true},
+        //Passage mid 180deg
+        { xRange: [120, 120], y: 1560, imgX: 60, imgY: 360, moveOver: true}, { xRange: [720, 840], y: 840, imgX: 60, imgY: 360, moveOver: true},
+        //Passage mid -90deg
+        { xRange: [960, 960], y: 1080, imgX: 300, imgY: 360, moveOver: true}, { xRange: [960, 960], y: 1020, imgX: 300, imgY: 360, moveOver: true}, { xRange: [960, 960], y: 960, imgX: 300, imgY: 360, moveOver: true},
+        { xRange: [1920, 1920], y: 1560, imgX: 300, imgY: 360, moveOver: true},
         //Original S shape 01
-        { xRange: [600, 600], y: 360, imgX: 0, imgY: 720}, { xRange: [1080, 1080], y: 240, imgX: 0, imgY: 720}, { xRange: [1680, 1680], y: 540, imgX: 0, imgY: 720},
-        { xRange: [120, 120], y: 2040, imgX: 0, imgY: 720}, { xRange: [1740, 1740], y: 1800, imgX: 0, imgY: 720},
+        { xRange: [600, 600], y: 360, imgX: 0, imgY: 720, moveOver: false}, { xRange: [1080, 1080], y: 240, imgX: 0, imgY: 720, moveOver: false}, { xRange: [1680, 1680], y: 540, imgX: 0, imgY: 720, moveOver: false},
+        { xRange: [120, 120], y: 2040, imgX: 0, imgY: 720, moveOver: false}, { xRange: [1740, 1740], y: 1800, imgX: 0, imgY: 720, moveOver: false},
         //Original S shape 02
-        { xRange: [600, 600], y: 300, imgX: 0, imgY: 660}, { xRange: [1080, 1080], y: 180, imgX: 0, imgY: 660}, { xRange: [1680, 1680], y: 480, imgX: 0, imgY: 660},
-        { xRange: [120, 120], y: 1980, imgX: 0, imgY: 660}, { xRange: [1740, 1740], y: 1740, imgX: 0, imgY: 660},
+        { xRange: [600, 600], y: 300, imgX: 0, imgY: 660, moveOver: false}, { xRange: [1080, 1080], y: 180, imgX: 0, imgY: 660, moveOver: false}, { xRange: [1680, 1680], y: 480, imgX: 0, imgY: 660, moveOver: false},
+        { xRange: [120, 120], y: 1980, imgX: 0, imgY: 660, moveOver: false}, { xRange: [1740, 1740], y: 1740, imgX: 0, imgY: 660, moveOver: false},
         //Original S shape 03
-        { xRange: [660, 660], y: 360, imgX: 60, imgY: 720}, { xRange: [1140, 1140], y: 240, imgX: 60, imgY: 720}, { xRange: [1740, 1740], y: 540, imgX: 60, imgY: 720},
-        { xRange: [180, 180], y: 2040, imgX: 60, imgY: 720}, { xRange: [1800, 1800], y: 1800, imgX: 60, imgY: 720},
+        { xRange: [660, 660], y: 360, imgX: 60, imgY: 720, moveOver: false}, { xRange: [1140, 1140], y: 240, imgX: 60, imgY: 720, moveOver: false}, { xRange: [1740, 1740], y: 540, imgX: 60, imgY: 720, moveOver: false},
+        { xRange: [180, 180], y: 2040, imgX: 60, imgY: 720, moveOver: false}, { xRange: [1800, 1800], y: 1800, imgX: 60, imgY: 720, moveOver: false},
         //Original S shape 04
-        { xRange: [660, 660], y: 300, imgX: 60, imgY: 660}, { xRange: [1140, 1140], y: 180, imgX: 60, imgY: 660}, { xRange: [1740, 1740], y: 480, imgX: 60, imgY: 660},
-        { xRange: [180, 180], y: 1980, imgX: 60, imgY: 660}, { xRange: [1800, 1800], y: 1740, imgX: 60, imgY: 660},
+        { xRange: [660, 660], y: 300, imgX: 60, imgY: 660, moveOver: false}, { xRange: [1140, 1140], y: 180, imgX: 60, imgY: 660, moveOver: false}, { xRange: [1740, 1740], y: 480, imgX: 60, imgY: 660, moveOver: false},
+        { xRange: [180, 180], y: 1980, imgX: 60, imgY: 660, moveOver: false}, { xRange: [1800, 1800], y: 1740, imgX: 60, imgY: 660, moveOver: false},
         //Original S shape 05
-        { xRange: [720, 720], y: 300, imgX: 120, imgY: 660}, { xRange: [1200, 1200], y: 180, imgX: 120, imgY: 660}, { xRange: [1800, 1800], y: 480, imgX: 120, imgY: 660},
-        { xRange: [240, 240], y: 1980, imgX: 120, imgY: 660}, { xRange: [1860, 1860], y: 1740, imgX: 120, imgY: 660},
+        { xRange: [720, 720], y: 300, imgX: 120, imgY: 660, moveOver: false}, { xRange: [1200, 1200], y: 180, imgX: 120, imgY: 660, moveOver: false}, { xRange: [1800, 1800], y: 480, imgX: 120, imgY: 660, moveOver: false},
+        { xRange: [240, 240], y: 1980, imgX: 120, imgY: 660, moveOver: false}, { xRange: [1860, 1860], y: 1740, imgX: 120, imgY: 660, moveOver: false},
         //Original S shape 06
-        { xRange: [660, 660], y: 240, imgX: 60, imgY: 600}, { xRange: [1140, 1140], y: 120, imgX: 60, imgY: 600}, { xRange: [1740, 1740], y: 420, imgX: 60, imgY: 600},
-        { xRange: [180, 180], y: 1920, imgX: 60, imgY: 600}, { xRange: [1800, 1800], y: 1680, imgX: 60, imgY: 600},
+        { xRange: [660, 660], y: 240, imgX: 60, imgY: 600, moveOver: false}, { xRange: [1140, 1140], y: 120, imgX: 60, imgY: 600, moveOver: false}, { xRange: [1740, 1740], y: 420, imgX: 60, imgY: 600, moveOver: false},
+        { xRange: [180, 180], y: 1920, imgX: 60, imgY: 600, moveOver: false}, { xRange: [1800, 1800], y: 1680, imgX: 60, imgY: 600, moveOver: false},
         //Original S shape 07
-        { xRange: [720, 720], y: 240, imgX: 120, imgY: 600}, { xRange: [1200, 1200], y: 120, imgX: 120, imgY: 600}, { xRange: [1800, 1800], y: 420, imgX: 120, imgY: 600},
-        { xRange: [240, 240], y: 1920, imgX: 120, imgY: 600}, { xRange: [1860, 1860], y: 1680, imgX: 120, imgY: 600},
+        { xRange: [720, 720], y: 240, imgX: 120, imgY: 600, moveOver: false}, { xRange: [1200, 1200], y: 120, imgX: 120, imgY: 600, moveOver: false}, { xRange: [1800, 1800], y: 420, imgX: 120, imgY: 600, moveOver: false},
+        { xRange: [240, 240], y: 1920, imgX: 120, imgY: 600, moveOver: false}, { xRange: [1860, 1860], y: 1680, imgX: 120, imgY: 600, moveOver: false},
         //lower left side zone middle S
-        { xRange: [420, 420], y: 1860, imgX: 180, imgY: 1260}, { xRange: [480, 480], y: 1860, imgX: 240, imgY: 1260}, { xRange: [420, 420], y: 1800, imgX: 180, imgY: 1200},
-        { xRange: [480, 480], y: 1800, imgX: 240, imgY: 1200}, { xRange: [540, 540], y: 1800, imgX: 300, imgY: 1200}, { xRange: [540, 540], y: 1740, imgX: 240, imgY: 960},
-        { xRange: [480, 480], y: 1740, imgX: 180, imgY: 960},
+        { xRange: [420, 420], y: 1860, imgX: 180, imgY: 1260, moveOver: false}, { xRange: [480, 480], y: 1860, imgX: 240, imgY: 1260, moveOver: false}, { xRange: [420, 420], y: 1800, imgX: 180, imgY: 1200, moveOver: false},
+        { xRange: [480, 480], y: 1800, imgX: 240, imgY: 1200, moveOver: false}, { xRange: [540, 540], y: 1800, imgX: 300, imgY: 1200, moveOver: false}, { xRange: [540, 540], y: 1740, imgX: 240, imgY: 960, moveOver: false},
+        { xRange: [480, 480], y: 1740, imgX: 180, imgY: 960, moveOver: false},
         //lower left side zone top S
-        { xRange: [360, 360], y: 1680, imgX: 120, imgY: 1260}, { xRange: [300, 300], y: 1680, imgX: 60, imgY: 1260}, { xRange: [360, 360], y: 1620, imgX: 120, imgY: 1200},
-        { xRange: [300, 300], y: 1620, imgX: 60, imgY: 1200}, { xRange: [300, 300], y: 1560, imgX: 60, imgY: 1140}, { xRange: [240, 240], y: 1560, imgX: 0, imgY: 1140},
-        { xRange: [240, 240], y: 1620, imgX: 0, imgY: 1200},
+        { xRange: [360, 360], y: 1680, imgX: 120, imgY: 1260, moveOver: false}, { xRange: [300, 300], y: 1680, imgX: 60, imgY: 1260, moveOver: false}, { xRange: [360, 360], y: 1620, imgX: 120, imgY: 1200, moveOver: false},
+        { xRange: [300, 300], y: 1620, imgX: 60, imgY: 1200, moveOver: false}, { xRange: [300, 300], y: 1560, imgX: 60, imgY: 1140, moveOver: false}, { xRange: [240, 240], y: 1560, imgX: 0, imgY: 1140, moveOver: false},
+        { xRange: [240, 240], y: 1620, imgX: 0, imgY: 1200, moveOver: false},
         //top right side zone middle S
-        { xRange: [1440, 1440], y: 420, imgX: 180, imgY: 900}, { xRange: [1500, 1500], y: 420, imgX: 240, imgY: 900}, { xRange: [1440, 1440], y: 360, imgX: 180, imgY: 840},
-        { xRange: [1500, 1500], y: 360, imgX: 240, imgY: 840}, { xRange: [1560, 1560], y: 360, imgX: 300, imgY: 840}, { xRange: [1500, 1500], y: 300, imgX: 240, imgY: 780},
-        { xRange: [1560, 1560], y: 300, imgX: 300, imgY: 780},
+        { xRange: [1440, 1440], y: 420, imgX: 180, imgY: 900, moveOver: false}, { xRange: [1500, 1500], y: 420, imgX: 240, imgY: 900, moveOver: false}, { xRange: [1440, 1440], y: 360, imgX: 180, imgY: 840, moveOver: false},
+        { xRange: [1500, 1500], y: 360, imgX: 240, imgY: 840, moveOver: false}, { xRange: [1560, 1560], y: 360, imgX: 300, imgY: 840, moveOver: false}, { xRange: [1500, 1500], y: 300, imgX: 240, imgY: 780, moveOver: false},
+        { xRange: [1560, 1560], y: 300, imgX: 300, imgY: 780, moveOver: false},
         //bottom right side zone top left S
-        { xRange: [1440, 1440], y: 1440, imgX: 0, imgY: 1080}, { xRange: [1500, 1500], y: 1440, imgX: 60, imgY: 1080}, { xRange: [1440, 1440], y: 1380, imgX: 0, imgY: 1020},
-        { xRange: [1500, 1500], y: 1380, imgX: 60, imgY: 1020}, { xRange: [1560, 1560], y: 1380, imgX: 120, imgY: 1020}, { xRange: [1560, 1560], y: 1320, imgX: 120, imgY: 960},
-        { xRange: [1500, 1500], y: 1320, imgX: 60, imgY: 960},
+        { xRange: [1440, 1440], y: 1440, imgX: 0, imgY: 1080, moveOver: false}, { xRange: [1500, 1500], y: 1440, imgX: 60, imgY: 1080, moveOver: false}, { xRange: [1440, 1440], y: 1380, imgX: 0, imgY: 1020, moveOver: false},
+        { xRange: [1500, 1500], y: 1380, imgX: 60, imgY: 1020, moveOver: false}, { xRange: [1560, 1560], y: 1380, imgX: 120, imgY: 1020, moveOver: false}, { xRange: [1560, 1560], y: 1320, imgX: 120, imgY: 960, moveOver: false},
+        { xRange: [1500, 1500], y: 1320, imgX: 60, imgY: 960, moveOver: false},
     ];
     for(const tile of tileCoordinates){
         const [start, end] = tile.xRange;
@@ -712,6 +775,7 @@ function PositionOfDifferentTilesOnTheMap(xAxis, yAxis){
             if(i === xAxis && tile.y === yAxis){
                 tileLocOnTileMapImgX = tile.imgX;
                 tileLocOnTileMapImgY = tile.imgY;
+                tileMoveOver = tile.moveOver;
                 return;
             }
         }
