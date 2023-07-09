@@ -1,4 +1,4 @@
-const canvas = document.getElementById("game-canvas");
+const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 //Canvas size
@@ -23,7 +23,7 @@ let tileLocOnTileMapImgX = 60;
 let tileLocOnTileMapImgY = 0;
 let rectLocationX = 750;
 let rectLocationY = 62;
-let tileMoveOver;
+let tileMoveOver = true;
 //Mouse
 let mousePreviousPosX = 0;
 let mousePreviousPosY = 0;
@@ -51,6 +51,15 @@ const uiElements = [];
 let buildingArray = [];
 const buildableArea = [];
 let storeCheckLimit = 0;
+//TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR 
+//TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR 
+            const tileSize = [60, 60];
+            const gridMapSize = [36, 36];
+            const start = [0, 0];
+            var goal = [mousePreviousPosX, mousePreviousPosY];
+            let index = 0
+//TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR 
+//TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR 
 //Button class
 class UiElements {
     constructor(src, x, y, height, width){
@@ -60,6 +69,7 @@ class UiElements {
         this.y = y;
         this.height = height;
         this.width = width;
+        this.path;
     }
     draw(){
         ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
@@ -100,29 +110,55 @@ class Sprites {
     draw (){
         ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
     }
-    movement(x, y){
-        console.log("Movement!");
-        if(CollisionDetection(this.x, this.y, this.width, this.height)){
-
+    findPath(){
+        this.path = astar([this.x, this.y], [moveToX, moveToY], tileSize, gridMapSize, mapTilesArray.map((object) => !object.tileMoveOver ? [Math.floor(object.xPos / tileSize[0]), Math.floor(object.yPos / tileSize[1])] : [0, 0]));
+    }
+    movement(){
+        if(this.path){
+            for (const p in this.path) {
+                ctx.beginPath();
+                ctx.strokeStyle = "green";
+                ctx.rect(this.path[p][0], this.path[p][1], 60, 60);
+                ctx.stroke();
+            }
         }
-        else{
-            let dx = x - this.x;
-            //console.log(dx);
-            let dy = y - this.y;
-            //console.log(dy);
+        if(this.path && this.path.length - 1 > index && this.x == this.path[index][0] && this.y == this.path[index][1]){
+            index++;
+        }
+        else if(this.path && this.path.length > index){
+            let dx = this.path[index][0] - this.x;
+            let dy = this.path[index][1] - this.y;
             let distance = Math.sqrt(dx * dx + dy * dy);
-            //console.log(distance);
             if(distance > this.speed){
                 let ratio = this.speed / distance;
-                //console.log(ratio);
                 let moveX = dx * ratio;
-                //console.log(moveX);
                 let moveY = dy * ratio;
-                //console.log(moveY);
                 this.x += moveX;
                 this.y += moveY;
             }
+            else{
+                this.x = this.path[index][0];
+                this.y = this.path[index][1];
+            }
         }
+        /*
+        let dx = x - this.x;
+        //console.log(dx);
+        let dy = y - this.y;
+        //console.log(dy);
+        let distance = Math.sqrt(dx * dx + dy * dy);
+        //console.log(distance);
+        if(distance > this.speed){
+            let ratio = this.speed / distance;
+            //console.log(ratio);
+            let moveX = dx * ratio;
+            //console.log(moveX);
+            let moveY = dy * ratio;
+            //console.log(moveY);
+            this.x += moveX;
+            this.y += moveY;
+        }
+        */
     }
 }
 //Building class
@@ -216,12 +252,24 @@ function gameLoop(){
     ctx.clearRect(0, 0 , CANVAS_WIDTH, CANVAS_HEIGHT);
     //Layer01
     drawMap();
+        //
+        //console.log(mapTilesArray.map((object) => !object.tileMoveOver ? [Math.floor(object.xPos / tileSize[0]), Math.floor(object.yPos / tileSize[1])] : undefined));
+        //console.log(mapTilesArray.map((object) => !object.tileMoveOver ? [object.xPos / tileSize[0], object.yPos / tileSize[1]] : undefined));
+        
+        for (const o in mapTilesArray) {
+            if(!mapTilesArray[o].tileMoveOver){
+                ctx.beginPath();
+                ctx.strokeStyle = "red";
+                ctx.rect(mapTilesArray[o].xPos, mapTilesArray[o].yPos, 60, 60);
+                ctx.stroke();
+            }
+        }
+        //
     //Layer02
     DrawVehiclesAndSoldiers();
     drawBuildings();
     //Layer03
     DrawRectangleToSelectArmyUnits();
-    //MoveSelectedTroopsAndVehicles();
     moveSoldierTest();
     //Layer04
     DrawUi();
@@ -235,24 +283,101 @@ function gameLoop(){
     drawMiniMap();
     drawCanvasLocationOnMiniMap();
     //Layer06
-    ctx.beginPath();
-    ctx.strokeStyle = "black";
-    ctx.rect(480, 240, 60, 60);
-    ctx.stroke();
     DrawBuildableObject();
     requestAnimationFrame(gameLoop);
 };
 gameLoop();
-//Testing path finding
-function CollisionDetection(vehicleX, vehicleY, vehicleWidth, vehicleHeight){
+//TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR 
+function astar(start, goal, tileSize, gridMapSize, obstacles) {
+  // Convert the tile coordinates to grid coordinates
+  start = [Math.floor(start[0] / tileSize[0]), Math.floor(start[1] / tileSize[1])];
+  goal = [Math.floor(goal[0] / tileSize[0]), Math.floor(goal[1] / tileSize[1])];
+
+  // Convert obstacle coordinates to grid coordinates
+  
+  const gridObstacles = obstacles;
+  console.log(obstacles);
+  //const gridObstacles = obstacles.map(([ox, oy]) => [Math.floor(ox / tileSize[0]), Math.floor(oy / tileSize[1])]);
+
+  // Initialize the open and closed sets
+  const openSet = [];
+  openSet.push([0, start]);
+  const cameFrom = {};
+  const gScore = { [start]: 0 };
+  const fScore = { [start]: heuristic(start, goal) };
+
+  while (openSet.length > 0) {
+    openSet.sort((a, b) => a[0] - b[0]);
+    const current = openSet.shift()[1];
+
+    if (current[0] === goal[0] && current[1] === goal[1]) {
+      // Reconstruct the path
+      const path = [];
+      let curr = current;
+      while (curr in cameFrom) {
+        path.unshift(curr);
+        curr = cameFrom[curr];
+      }
+      path.unshift(start);
+      return path.map((node) => [node[0] * tileSize[0], node[1] * tileSize[1]]);
+    }
+
+    const neighbours = getNeighbors(current, gridMapSize, gridObstacles);
+    for (const neighbour of neighbours) {
+      const newGScore = gScore[current] + 1;
+
+      if (!gScore.hasOwnProperty(neighbour) || newGScore < gScore[neighbour]) {
+        gScore[neighbour] = newGScore;
+        fScore[neighbour] = newGScore + heuristic(neighbour, goal);
+        cameFrom[neighbour] = current;
+        openSet.push([fScore[neighbour], neighbour]);
+      }
+    }
+  }
+
+  // No path found
+  return null;
+};
+    
+    /*
     for (let i = 0; i < mapTilesArray.length; i++) {
         if(mapTilesArray[i].xPos <= vehicleX && mapTilesArray[i].xPos + mapTilesArray[i].tileSizeXAxis >= vehicleX && 
             mapTilesArray[i].yPos <= vehicleY && mapTilesArray[i].yPos + mapTilesArray[i].tileSizeYAxis >= vehicleY &&
-            mapTilesArray[i].YPosOnTileMap > 0){
-            console.log("Collision! = " + i);
+            !mapTilesArray[i].tileMoveOver){
+            console.log("Collision! = " + mapTilesArray[i].tileMoveOver);
         }
     }
+    */
+// Helper functions
+function heuristic(a, b) {
+    // Manhattan distance heuristic
+    return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
 };
+function getNeighbors(node, gridMapSize, obstacles) {
+    const neighbours = [];
+    const [x, y] = node;
+  
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) {
+          continue; // Skip the current node
+        }
+  
+        const newX = x + dx;
+        const newY = y + dy;
+  
+        if (newX >= 0 && newX < gridMapSize[0] && newY >= 0 && newY < gridMapSize[1]) {
+          const neighbour = [newX, newY];
+          if (!obstacles.some(([ox, oy]) => ox === newX && oy === newY)) {
+            neighbours.push(neighbour);
+          }
+        }
+      }
+    }
+  
+    return neighbours;
+  }
+//TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR 
 //
 function loadMapTiles(){
     for (let eachRow = 0; eachRow < mapTilesCountWidth; eachRow++) {
@@ -271,13 +396,13 @@ function loadMapTiles(){
             }
             tileLocOnTileMapImgX = 60;
             tileLocOnTileMapImgY = 0;
+            tileMoveOver = true;
         }
     }
     if(!loadMiniMap){
         loadMiniMap = true;
         loadMapTiles();
     }
-    console.log(mapTilesArray);
 };
 function GetDarkBrownTilesLocations(){
     for (let i = 0; i < mapTilesArray.length; i++) {
@@ -448,6 +573,12 @@ function DrawUi(){
         }
     }
 };
+//Move vehicles/soldiers to clicked mouse position
+function moveSoldierTest(){
+    for (const item in selectedVehiclesAndSoldiers) {
+        selectedVehiclesAndSoldiers[item].movement(moveToX, moveToY);
+    }
+};
 //Prevent right click options list from appearing
 canvas.addEventListener("contextmenu", function(event) {
     event.preventDefault();
@@ -456,8 +587,8 @@ canvas.addEventListener("contextmenu", function(event) {
 canvas.addEventListener("mousedown", mouseDownHandler, false);
 function mouseDownHandler(event) {
     let rect = canvas.getBoundingClientRect();
-    let mouseX = event.clientX - rect.left;
-    let mouseY = event.clientY - rect.top;
+    let mouseX = Math.floor(event.clientX - rect.left);
+    let mouseY = Math.floor(event.clientY - rect.top);
     switch(event.button){
         case 2:
             mouseRightButtonPressDown = true;
@@ -477,18 +608,12 @@ function mouseDownHandler(event) {
     mousePreviousPosX = mouseX;
     mousePreviousPosY = mouseY;
 };
-//Move vehicles/soldiers to clicked mouse position
-function moveSoldierTest(){
-    for (const item in selectedVehiclesAndSoldiers) {
-        selectedVehiclesAndSoldiers[item].movement(moveToX, moveToY);
-    }
-};
 //Mouse movement on canvas
 canvas.addEventListener("mousemove", mouseMoveHandler, false);
 function mouseMoveHandler(event) {
     let rect = canvas.getBoundingClientRect();
-    let mouseX = event.clientX - rect.left;
-    let mouseY = event.clientY - rect.top;
+    let mouseX = Math.floor(event.clientX - rect.left);
+    let mouseY = Math.floor(event.clientY - rect.top);
     //
     if(mouseLeftButtonPressDown && !pressedButton){
         drawSelect = true;
@@ -526,8 +651,19 @@ function mouseUpHandler(event) {
             mouseLeftButtonPressDown = false;
             //Check if there is any selected vehicles/Soldiers and move them to that location
             if(selectedVehiclesAndSoldiers.length > 0 && !CheckIfClickedOnUiArea()){
-                moveToX = mouseCurrentPosX - 30;
-                moveToY = mouseCurrentPosY - 30;
+                for (const tile in mapTilesArray) {
+                    if(mapTilesArray[tile].xPos <= mouseCurrentPosX && mapTilesArray[tile].xPos + mapTilesArray[tile].width >= mouseCurrentPosX && 
+                        mapTilesArray[tile].yPos <= mouseCurrentPosY && mapTilesArray[tile].yPos  + mapTilesArray[tile].height >= mouseCurrentPosY){
+                            moveToX = mapTilesArray[tile].xPos;
+                            moveToY = mapTilesArray[tile].yPos;
+                        }
+                }
+                //TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR
+                for (const item in selectedVehiclesAndSoldiers) {
+                    selectedVehiclesAndSoldiers[item].findPath();
+                }
+                index = 0;
+                //TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR TESTING A STAR 
             }
             if(drawSelect){
                 moveToX = undefined;
@@ -590,6 +726,10 @@ function MoveMap(x, y){
     for (const key in storedVehiclesAndSoldiers) {
         storedVehiclesAndSoldiers[key].x += x;
         storedVehiclesAndSoldiers[key].y += y;
+        for (const path in storedVehiclesAndSoldiers[key].path) {
+            storedVehiclesAndSoldiers[key].path[path][0] += x;
+            storedVehiclesAndSoldiers[key].path[path][1] += y;
+        }
     }
     moveToX += x;
     moveToY += y;
@@ -695,7 +835,7 @@ function PositionOfDifferentTilesOnTheMap(xAxis, yAxis){
         //Inner corner 180deg
         { xRange: [0, 0], y: 1560, imgX: 120, imgY: 480, moveOver: false}, { xRange: [1800, 1800], y: 1260, imgX: 120, imgY: 480, moveOver: false}, { xRange: [1860, 1860], y: 1440, imgX: 120, imgY: 480, moveOver: false},
         //Inner corner 180deg
-        { xRange: [1620, 1620], y: 1320, imgX: 180, imgY: 480},
+        { xRange: [1620, 1620], y: 1320, imgX: 180, imgY: 480, moveOver: false},
         //Passage right 0deg
         { xRange: [360, 360], y: 300, imgX: 120, imgY: 300, moveOver: true}, { xRange: [1020, 1020], y: 240, imgX: 120, imgY: 300, moveOver: true}, { xRange: [2040, 2040], y: 420, imgX: 120, imgY: 300, moveOver: true},
         { xRange: [900, 900], y: 1200, imgX: 120, imgY: 300, moveOver: true}, { xRange: [1500, 1500], y: 1680, imgX: 120, imgY: 300, moveOver: true}, { xRange: [360, 360], y: 1920, imgX: 120, imgY: 300, moveOver: true},
