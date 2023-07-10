@@ -7,6 +7,7 @@ DrawBuiltBuilding();
 DrawSoldiersVehicles();
 DrawRectangleToSelectArmyUnits();
 DrawUi();
+DrawEnergy();
 DrawMiniMap();
 CameraPosOnMiniMap();
 TextBoxTopLeftCorner();

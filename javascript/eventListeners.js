@@ -16,8 +16,14 @@ function mouseDownHandler(event) {
     let rect = canvas.getBoundingClientRect();
     let mouseX = Math.floor(event.clientX - rect.left);
     let mouseY = Math.floor(event.clientY - rect.top);
-    if(!startGame && mouseX > 360 && mouseX < 570 && mouseY > 460 && mouseY < 505){
-        startGame = true;
+    if(mouseX > 360 && mouseX < 570 && mouseY > 460 && mouseY < 560){
+        if(!startGame){
+            startGame = true;
+            AttackPlayer();
+        }
+        else if(youWin || youLose){
+            location.reload();
+        }
     }
     else if(!youWin && !youLose){
         switch(event.button){
@@ -112,7 +118,11 @@ function SelectArmy(){
     for (let i = 0; i < storedVehiclesSoldiers.length; i++) {
         if(mousePreviousPosX + cameraX - 5 <= storedVehiclesSoldiers[i].x && mouseCurrentPosX + cameraX + 5 >= storedVehiclesSoldiers[i].x &&  mousePreviousPosY + cameraY - 5 <= storedVehiclesSoldiers[i].y && mouseCurrentPosY + cameraY + 5 >= storedVehiclesSoldiers[i].y ||
             mousePreviousPosX + cameraX + 5 >= storedVehiclesSoldiers[i].x && mouseCurrentPosX + cameraX - 5 <= storedVehiclesSoldiers[i].x &&  mousePreviousPosY + cameraY + 5 >= storedVehiclesSoldiers[i].y && mouseCurrentPosY + cameraY - 5 <= storedVehiclesSoldiers[i].y){
+            storedVehiclesSoldiers[i].isSelected = true;
             selectedVehiclesSoldiers.push(storedVehiclesSoldiers[i]);
+        }
+        else{
+            storedVehiclesSoldiers[i].isSelected = false;
         }
     }
 };

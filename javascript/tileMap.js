@@ -40,17 +40,12 @@ const timeMap01 = [
     [0, 48, 72, 73, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 // Tile map variables
+let tileSet = new Image();
+tileSet.src = "./images/tileMap/tileMap.png";
 const miniMaptileWidth = 5;
 const miniMaptileHeight = 5;
 const tileWidth = 60;
 const tileHeight = 60;
-const tileSet = new Image();
-tileSet.src = "./images/tileMap/tileMap.png";
-console.log(tileSet);
-const tileSetWidth = tileSet.width;
-const tileSetHeight = tileSet.height;
-const numTileSetColumns = Math.floor(tileSetWidth / tileWidth);
-const numTilesetRows = Math.floor(tileSetHeight / tileHeight);
 canvas.width = tileWidth * 16;
 canvas.height = tileHeight * 12;
 let cameraWidth = tileWidth * 16;
@@ -76,6 +71,8 @@ youWinBg.src = "./images/UI/bg800x500.png";
 let youWin = false;
 // You lose page
 let youLose = false;
+// testing 
+let testingss = false;
 // Draw map function
 function DrawTileMap(){
     // Clear the canvas
@@ -93,8 +90,8 @@ function DrawTileMap(){
                 const tileX = x * tileWidth - cameraX;
                 const tileY = y * tileHeight - cameraY;
 
-                const tileSetX = (tile % numTileSetColumns) * tileWidth;
-                const tileSetY = Math.floor(tile / numTileSetColumns) * tileHeight;
+                const tileSetX = (tile % Math.floor(tileSet.width / tileWidth)) * tileWidth;
+                const tileSetY = Math.floor(tile / Math.floor(tileSet.width / tileWidth)) * tileHeight;
 
                 ctx.drawImage(tileSet, tileSetX, tileSetY, tileWidth, tileHeight, tileX, tileY, tileWidth, tileHeight);
             }
@@ -133,13 +130,35 @@ function DrawMiniMap(){
                 const tileX = (x + 152) * miniMaptileWidth;
                 const tileY = (y + 22) * miniMaptileHeight;
 
-                const tileSetX = (tile % numTileSetColumns) * tileWidth;
-                const tileSetY = Math.floor(tile / numTileSetColumns) * tileHeight;
+                const tileSetX = (tile % Math.floor(tileSet.width / tileWidth)) * tileWidth;
+                const tileSetY = Math.floor(tile / Math.floor(tileSet.width / tileWidth)) * tileHeight;
 
                 ctx.drawImage(tileSet, tileSetX, tileSetY, tileWidth, tileHeight, tileX, tileY, miniMaptileWidth, miniMaptileHeight);
             }
         }
     }
+};
+// Draw energy bar
+function DrawEnergy(){
+    ctx.beginPath();
+    ctx.lineWidth = 1;
+    // Bg color
+    ctx.fillStyle = "rgba(0, 103, 103, 0.6)";
+    ctx.fillRect(720, 120, 20, 160);
+    // Energy demand
+    ctx.fillStyle = "rgba(220, 255, 46, 0.8)";
+    ctx.fillRect(720, 280, 20, -player.energyDemand);
+    // Available energy
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(720, 280 - player.availableEnergy);
+    ctx.lineTo(740, 280 - player.availableEnergy);
+    ctx.stroke();
+    // Color around bg
+    ctx.strokeStyle = "rgba(0, 229, 229, 1)";
+    ctx.beginPath();
+    ctx.rect(720, 120, 20, 160);
+    ctx.stroke();
 };
 // Draw camera position on mini map
 function CameraPosOnMiniMap(){
@@ -152,9 +171,9 @@ function CameraPosOnMiniMap(){
 function StartGame(){
     if(!startGame){
         ctx.drawImage(startGameBg, 0, 0, 960, 720);
-        ctx.drawImage(startButtonBg, 359, 460, 212, 46);
+        ctx.drawImage(startButtonBg, 359, 517, 212, 46);
         ctx.font = "30px Arial";
-        ctx.fillText("Start", 432 ,493);
+        ctx.fillText("Start", 432 ,550);
     }
 };
 // You win

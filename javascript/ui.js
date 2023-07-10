@@ -41,10 +41,30 @@ class BuildingObjects {
         this.cost = cost;
         this.limit = limit;
         this.hp = hp;
+        // Explosion
+        this.explosionImage = new Image();
+        this.explosionImage.src = "./images/animation/explosionSheet.png";
+        this.explosionNum = 0;
+        this.changeAnimationImg = -1;
+        this.explosionAnimationFrame = null;
     }
     Draw(){
         ctx.drawImage(this.image, this.x - cameraX, this.y - cameraY, this.width, this.height);
     }
+    Explosion(){
+        if(this.explosionNum < 60){
+            if(this.explosionNum % 10 === 0){
+                this.changeAnimationImg++;
+            }
+            ctx.drawImage(this.explosionImage, this.changeAnimationImg * 240, 0, 240, 240, this.x - cameraX, this.y - cameraY, this.width, this.width);
+            this.explosionNum++;
+            this.explosionAnimationFrame = requestAnimationFrame(this.Explosion.bind(this));
+        }
+        else{
+            console.log("Animation done");
+            cancelAnimationFrame(this.explosionAnimationFrame);
+        }
+    };
 }
 // UiComponents class
 class UiComponents {
@@ -112,6 +132,9 @@ function DrawUi(){
 };
 // Check button pressed
 function ButtonPressed(mouseX, mouseY){
+    // Checks if pressed on building
+    CheckIfBuilding(mouseX, mouseY);
+    // Checks if pressed on UI component
     for (const uiStaticComponent in uiStaticComponents) {
         if(uiStaticComponents[uiStaticComponent].tag == "uiButton" && uiStaticComponents[uiStaticComponent].x < mouseX && uiStaticComponents[uiStaticComponent].x + uiStaticComponents[uiStaticComponent].width > mouseX &&
         uiStaticComponents[uiStaticComponent].y < mouseY && uiStaticComponents[uiStaticComponent].y + uiStaticComponents[uiStaticComponent].height > mouseY){
@@ -121,6 +144,7 @@ function ButtonPressed(mouseX, mouseY){
             return;
         }
     }
+    // Check which page if active
     switch (currentPage) {
         case 0:
             for (const uiComponentPage0 in uiComponentsPage0) {
@@ -229,7 +253,7 @@ function ButtonPressed(mouseX, mouseY){
                         case "uiTank01":
                             informationText.push({string: "Tank cost: 1500", color: "yellow"});
                             if(CheckIfBuildingIsPresent("vehicleFactory")){
-                                TrainingManufacturing("./images/vehicles/tank01.png", BuildingCoordinates("vehicleFactory").x + 60, BuildingCoordinates("vehicleFactory").y, 60, 49, 1, 100, 10, 12, "tankVehicle", 1500);
+                                TrainingManufacturing("./images/vehicles/tank01.png", BuildingCoordinates("vehicleFactory").x + 60, BuildingCoordinates("vehicleFactory").y + 10, 50, 41, 1, 100, 12, 12, "tankVehicle", 1500);
                             }
                             else{
                                 informationText.push({string: "You can't manufacture Tank without Vehicle Factory.", color: "red"});
@@ -238,7 +262,7 @@ function ButtonPressed(mouseX, mouseY){
                         case "uiArmoredVehicle01":
                             informationText.push({string: "Armored vehicle with machine gun cost: 1200", color: "yellow"});
                             if(CheckIfBuildingIsPresent("vehicleFactory")){
-                                TrainingManufacturing("./images/vehicles/armoredVehicle01.png", BuildingCoordinates("vehicleFactory").x + 60, BuildingCoordinates("vehicleFactory").y + 10, 60, 40, 2, 8000, 15, 6, "armoredVehicle", 1200);
+                                TrainingManufacturing("./images/vehicles/armoredVehicle01.png", BuildingCoordinates("vehicleFactory").x + 60, BuildingCoordinates("vehicleFactory").y + 15, 45, 30, 2, 70, 15, 6, "armoredVehicle", 1200);
                             }
                             else{
                                 informationText.push({string: "You can't manufacture Armored vehicle without Vehicle Factory.", color: "red"});
@@ -247,7 +271,7 @@ function ButtonPressed(mouseX, mouseY){
                         case "uiHarvester":
                             informationText.push({string: "Harvester cost: 2000", color: "yellow"});
                             if(CheckIfBuildingIsPresent("vehicleFactory")){
-                                TrainingManufacturing("./images/vehicles/harvester01.png", BuildingCoordinates("vehicleFactory").x + 60, BuildingCoordinates("vehicleFactory").y + 9, 60, 39, 1, 100, 3, 0, "harvestingVehicle", 2000);
+                                TrainingManufacturing("./images/vehicles/harvester01.png", BuildingCoordinates("vehicleFactory").x + 60, BuildingCoordinates("vehicleFactory").y + 9, 60, 39, 1, 200, 3, 0, "harvestingVehicle", 2000);
                             }
                             else{
                                 informationText.push({string: "You can't manufacture Harvester without Vehicle Factory.", color: "red"});
@@ -261,17 +285,22 @@ function ButtonPressed(mouseX, mouseY){
 };
 // Train soldiers / Manufacture vehicles
 function TrainingManufacturing(src, x, y, width, height, speed, hp, limit, damage, tag, cost){
-    if(BuildingSoldierVehicleLimit(tag) < limit && player.cash >= cost){
-        const vehicleOrSoldier = new VehiclesSoldiers(src, x, y, width, height, speed, hp, limit, damage, tag, x, y);
-        if(vehicleOrSoldier.tag === "harvestingVehicle"){
-            vehicleOrSoldier.Movement(300 + Math.random() * 100, 1200 + Math.random() * 100);
+    if(BuildingSoldierVehicleLimit(tag) < limit && player.cash >= cost && player.availableEnergy >= player.energyDemand){
+        if(tag === "harvestingVehicle"){
+            const harvester = new Harvester(src, x, y, width, height, speed, hp, limit, tag, HarvesterBase().x + width, HarvesterBase().y);
+            harvester.Movement(300 + Math.random() * 100, 1200 + Math.random() * 100);
+            storedVehiclesSoldiers.push(harvester);
         }
         else{
+            const vehicleOrSoldier = new VehiclesSoldiers(src, x, y, width, height, speed, hp, limit, damage, tag);
             vehicleOrSoldier.CheckForEnemies();
+            storedVehiclesSoldiers.push(vehicleOrSoldier);
         }
-        storedVehiclesSoldiers.push(vehicleOrSoldier);
         player.cash -= cost;
         tag === "soldier" ? informationText.push({string: "Training.", color: "green"}) : informationText.push({string: "Manufacturing.", color: "green"});
+    }
+    else if(player.availableEnergy < player.energyDemand){
+        informationText.push({string: "You need more power build more Solar Panels!", color: "red"});
     }
     else if(player.cash < cost){
         informationText.push({string: "You don't have enough cash.", color: "red"});
@@ -315,7 +344,16 @@ function Build(){
         buildingLayer.push(building);
         // Check if it's harvesting building if yes manufacture harvesting vehicle too
         if(selectedBuilding.tag === "harvestingBuilding"){
-            TrainingManufacturing("./images/vehicles/harvester01.png", building.x + 60, building.y + 9, 60, 39, 1, 10, 20, 0, "harvestingVehicle", 0);
+            const harvester = new Harvester("./images/vehicles/harvester01.png", building.x + 60, building.y, 60, 39, 1, 200, 3, "harvestingVehicle", building.x + 60, building.y);
+            harvester.Movement(300 + Math.random() * 100, 1200 + Math.random() * 100);
+            storedVehiclesSoldiers.push(harvester);
+            player.energyDemand += 15;
+        }
+        else if(selectedBuilding.tag === "solarPanel"){
+            player.availableEnergy += 10;
+        }
+        else if(selectedBuilding.tag !== "wall"){
+            player.energyDemand += 10;
         }
         player.cash -= selectedBuilding.cost;
         selectedBuilding.isSelected = false;
@@ -339,6 +377,7 @@ function VehiclesPage(){
 function DrawRectangleToSelectArmyUnits(){
     if(selectArmy){
         ctx.beginPath();
+        ctx.lineWidth = 1;
         ctx.strokeStyle = "rgba(0, 229, 229, 1)";
         ctx.rect(mousePreviousPosX, mousePreviousPosY, mouseCurrentPosX - mousePreviousPosX, mouseCurrentPosY - mousePreviousPosY);
         ctx.stroke();
@@ -402,6 +441,32 @@ function BuildingCoordinates(tag){
         }
     }
     return null;
+};
+// Input harvester base coordinates
+function HarvesterBase(){
+        for (let building in buildingLayer) {
+            if(buildingLayer[building].tag === "harvestingBuilding"){
+                return { x: buildingLayer[building].x, y: buildingLayer[building].y };
+            }
+        }
+        return { x: null, y: null };
+};
+// Detect if pressed on building
+function CheckIfBuilding(mouseX, mouseY){
+    for (const building in buildingLayer) {
+        if(buildingLayer[building].x <= mouseX + cameraX && buildingLayer[building].x + buildingLayer[building].width >= mouseX + cameraX && 
+        buildingLayer[building].y <= mouseY + cameraY && buildingLayer[building].y + buildingLayer[building].height >= mouseY + cameraY){
+            if(buildingLayer[building].tag == "harvestingBuilding"){
+                for (const unit in selectedVehiclesSoldiers) {
+                    if(selectedVehiclesSoldiers[unit].tag === "harvestingVehicle"){
+                        selectedVehiclesSoldiers[unit].baseX = buildingLayer[building].x + selectedVehiclesSoldiers[unit].width;
+                        selectedVehiclesSoldiers[unit].baseY = buildingLayer[building].y
+                        selectedVehiclesSoldiers[unit].Movement(buildingLayer[building].x + selectedVehiclesSoldiers[unit].width, buildingLayer[building].y)
+                    }
+                }
+            }
+        }
+    }
 };
 // Reset selected building variables
 function ResetVariablesSelectedBuilding(){

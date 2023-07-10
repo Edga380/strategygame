@@ -32,20 +32,20 @@ const enemyBaseData = [
     {src: "./images/buildings/enemyHarvestingBuilding.png", width: 105, height: 60, x: 1500, y: 1680, tag: "enemyHarvestingBuilding", cost: 2000, limit: 3, hp: 100}
 ];
 const enemyArmyData = [
-    {src: "./images/vehicles/enemyTank01.png", x: 1740, y: 1280, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1800, y: 1280, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1800, y: 1340, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1740, y: 1340, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1740, y: 1280, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1800, y: 1280, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1800, y: 1340, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1740, y: 1340, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
     //
-    {src: "./images/vehicles/enemyTank01.png", x: 1880, y: 1580, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1880, y: 1640, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1940, y: 1580, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1940, y: 1640, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1880, y: 1580, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1880, y: 1640, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1940, y: 1580, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1940, y: 1640, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
     //
-    {src: "./images/vehicles/enemyTank01.png", x: 1640, y: 1100, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1600, y: 1180, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1500, y: 1220, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1460, y: 1300, width: 60, height: 49, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000}
+    {src: "./images/vehicles/enemyTank01.png", x: 1640, y: 1100, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1600, y: 1180, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1500, y: 1220, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1460, y: 1300, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000}
 ];
 
 // Enemy Vehicle / Soldier variables
@@ -73,6 +73,12 @@ class EnemyVehiclesSoldiers {
         this.shootAfterNum = 0;
         this.shootImage = new Image();
         this.shootImage.src = "./images/vehicles/shoot.png";
+        // Explosion
+        this.explosionImage = new Image();
+        this.explosionImage.src = "./images/animation/explosionSheet.png";
+        this.explosionNum = 0;
+        this.changeAnimationImg = -1;
+        this.explosionAnimationFrame = null;
     };
     Draw (){
         ctx.save();
@@ -158,12 +164,14 @@ class EnemyVehiclesSoldiers {
         if(enemyTarget.hp <= 0){
             for (let i = 0; i < storedVehiclesSoldiers.length; i++) {
                 if(enemyTarget.x === storedVehiclesSoldiers[i].x && enemyTarget.y === storedVehiclesSoldiers[i].y){
-                    storedVehiclesSoldiers[i].StopEnemyCheck();
+                    storedVehiclesSoldiers[i].Explosion();
+                    storedVehiclesSoldiers[i].tag === "harvestingVehicle" ? (storedVehiclesSoldiers[i].StopHarvest(), storedVehiclesSoldiers[i].StopEmptyHarvest()) : storedVehiclesSoldiers[i].StopEnemyCheck();
                     storedVehiclesSoldiers.splice(i, 1);
                 }
             }
             for (let i = 0; i < buildingLayer.length; i++) {
                 if(enemyTarget.x === buildingLayer[i].x && enemyTarget.y === buildingLayer[i].y){
+                    buildingLayer[i].Explosion();
                     buildingLayer.splice(i, 1);
                 }
             }
@@ -185,6 +193,20 @@ class EnemyVehiclesSoldiers {
             this.animateAnimationFrame = requestAnimationFrame(this.ShootAnimation.bind(this));
         }
     };
+    Explosion(){
+        if(this.explosionNum < 60){
+            if(this.explosionNum % 10 === 0){
+                this.changeAnimationImg++;
+            }
+            ctx.drawImage(this.explosionImage, this.changeAnimationImg * 240, 0, 240, 240, this.x - cameraX, this.y - cameraY, 60, 60);
+            this.explosionNum++;
+            this.explosionAnimationFrame = requestAnimationFrame(this.Explosion.bind(this));
+        }
+        else{
+            console.log("Animation done");
+            cancelAnimationFrame(this.explosionAnimationFrame);
+        }
+    };
 };
 // Load enemy base
 function LoadEnemyBase(){
@@ -193,7 +215,6 @@ function LoadEnemyBase(){
         enemyStoredBuildings.push(storeBuilding);
     }
     LoadEnemyArmy();
-    AttackPlayer();
 };
 // Load enemy vehicles / soldiers
 function LoadEnemyArmy(){
@@ -204,11 +225,13 @@ function LoadEnemyArmy(){
     }
 };
 function AttackPlayer(){
-    enemyVaweAttack = setInterval(() => {
-            const vehicleOrSoldier = new EnemyVehiclesSoldiers("./images/vehicles/enemyTank01.png", 2100, 1800, 60, 49, 1, 100, 10, 12, "enemyTank");
-            vehicleOrSoldier.CheckForEnemies();
-            vehicleOrSoldier.Movement(300, 150);
-            enemyStoredVehiclesSoldiers.push(vehicleOrSoldier);
-    }, 50000);
+    if(!youWin && !youLose){
+        enemyVaweAttack = setInterval(() => {
+                const vehicleOrSoldier = new EnemyVehiclesSoldiers("./images/vehicles/enemyTank01.png", 2100, 1800, 50, 41, 1, 100, 10, 12, "enemyTank");
+                vehicleOrSoldier.CheckForEnemies();
+                vehicleOrSoldier.Movement(300, 150);
+                enemyStoredVehiclesSoldiers.push(vehicleOrSoldier);
+        }, 50000);
+    }
 };
 
