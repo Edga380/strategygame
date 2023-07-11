@@ -6,6 +6,9 @@ let mousePreviousPosY = 0;
 let mouseLeftButtonPressDown = false;
 let mouseRightButtonPressDown = false;
 let selectArmy = false;
+// Cursor
+const cursorFixTool = new Image();
+cursorFixTool.src = "./images/UI/fixToolCursor.png";
 //Prevent right click options list from appearing
 canvas.addEventListener("contextmenu", function(event) {
     event.preventDefault();
@@ -30,6 +33,7 @@ function mouseDownHandler(event) {
             case 2:
                 mouseRightButtonPressDown = true;
                 selectedBuilding.isSelected = false;
+                fixButtonActive = false;
                 break;
             case 0:
                 // Attack enemy buildings on press
@@ -140,4 +144,17 @@ function AttackBuildings(mx, my){
             }
         }
     }
+};
+// Mouse cursor change
+function ChangeMouseCursor(){
+    if(fixButtonActive){
+        ctx.drawImage(cursorFixTool, mouseCurrentPosX - 12, mouseCurrentPosY - 12, 25, 25);
+    }
+    /*
+    ctx.beginPath();
+    ctx.arc(mouseCurrentPosX, mouseCurrentPosY, 60 / 2, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(0, 225, 46, 0.6)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    */
 };

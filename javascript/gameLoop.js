@@ -16,6 +16,7 @@ DisplaySelectedBuilding(selectedBuilding.src, selectedBuilding.width, selectedBu
 StartGame();
 YouWin();
 YouLose();
+ChangeMouseCursor();
 // 
 requestAnimationFrame(gameLoop);
 };

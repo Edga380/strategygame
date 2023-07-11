@@ -5,6 +5,7 @@ const uiComponentsData = [
     {src: "./images/UI/uiBuildingConstruction.png", x: 715, y: 370, width: 30, height: 60, tag: "uiButton", func: BuildingsPage.bind(this)},
     {src: "./images/UI/uiSoldierTraining.png", x: 715, y: 435, width: 30, height: 60, tag: "uiButton", func: SoldiersPage.bind(this)},
     {src: "./images/UI/uiVehicleManufacturing.png", x: 715, y: 500, width: 30, height: 60, tag: "uiButton", func: VehiclesPage.bind(this)},
+    {src: "./images/UI/fixTool.png", x: 750, y: 305, width: 40, height: 40, tag: "fixButton", page: null, func: FixBuildings.bind(this)},
     {src: "./images/UI/wallUi.png", x: 755, y: 370, width: 60, height: 60, tag: "uiWall", page: 0, func: undefined},
     {src: "./images/UI/solarPanelUi.png", x: 820, y: 370, width: 60, height: 60, tag: "uiSolarPanel", page: 0, func: undefined},
     {src: "./images/UI/harvestingBuildingUi.png", x: 885, y: 370, width: 60, height: 60, tag: "uiHarvestingBuilding", page: 0, func: undefined},
@@ -21,6 +22,8 @@ const uiComponentsPage0 = [];
 const uiComponentsPage1 = [];
 const uiComponentsPage2 = [];
 const uiStaticComponents = [];
+const menuUpperButtons = [];
+let fixButtonActive = false;
 // Text box
 let informationText = [];
 let yCoordinate = 20;
@@ -41,6 +44,9 @@ class BuildingObjects {
         this.cost = cost;
         this.limit = limit;
         this.hp = hp;
+        this.storeHp = hp;
+        this.recoverHp = false;
+        this.recoveryInterval = 0;
         // Explosion
         this.explosionImage = new Image();
         this.explosionImage.src = "./images/animation/explosionSheet.png";
@@ -50,6 +56,10 @@ class BuildingObjects {
     }
     Draw(){
         ctx.drawImage(this.image, this.x - cameraX, this.y - cameraY, this.width, this.height);
+        // Draw hp bar
+        this.DisplayHpBar();
+        // RecoverHp
+        this.RecoverHp();
     }
     Explosion(){
         if(this.explosionNum < 60){
@@ -61,8 +71,35 @@ class BuildingObjects {
             this.explosionAnimationFrame = requestAnimationFrame(this.Explosion.bind(this));
         }
         else{
-            console.log("Animation done");
             cancelAnimationFrame(this.explosionAnimationFrame);
+        }
+    };
+    DisplayHpBar(){
+        if(this.hp < this.storeHp){
+            let hpLeft = (this.hp * 100) / this.storeHp;
+            let hpToDisplay = (30 * hpLeft) / 100;
+            if(hpLeft > 66){
+                ctx.fillStyle = "green";
+            }
+            else if(hpLeft > 33){
+                ctx.fillStyle = "yellow";
+            }
+            else{
+                ctx.fillStyle = "red";
+            }
+            ctx.fillRect(this.x - cameraX + (this.width / 2) - 15, (this.y - cameraY + this.height / 2) - 5, hpToDisplay, 5);
+        }
+    };
+    RecoverHp(){
+        if(this.recoverHp === true && this.hp < this.storeHp && this.recoveryInterval > 60){
+            this.hp++;
+            this.recoveryInterval = 0;
+        }
+        else if(this.recoveryInterval <= 60){
+            this.recoveryInterval++;
+        }
+        else if(this.hp === this.storeHp){
+            this.recoverHp = false;
         }
     };
 }
@@ -86,6 +123,12 @@ class UiComponents {
 // Load UI elements
 function LoadUi(){
     for (const uiComponentData in uiComponentsData) {
+        switch (uiComponentsData[uiComponentData].tag) {
+            case "fixButton":
+                const uiComponent = new UiComponents(uiComponentsData[uiComponentData].src, uiComponentsData[uiComponentData].x, uiComponentsData[uiComponentData].y, uiComponentsData[uiComponentData].width, uiComponentsData[uiComponentData].height, uiComponentsData[uiComponentData].tag, uiComponentsData[uiComponentData].page, uiComponentsData[uiComponentData].func);
+                menuUpperButtons.push(uiComponent);
+                break;
+            }
         switch (uiComponentsData[uiComponentData].page) {
             case undefined:
                 const uiComponent = new UiComponents(uiComponentsData[uiComponentData].src, uiComponentsData[uiComponentData].x, uiComponentsData[uiComponentData].y, uiComponentsData[uiComponentData].width, uiComponentsData[uiComponentData].height, uiComponentsData[uiComponentData].tag, uiComponentsData[uiComponentData].page, uiComponentsData[uiComponentData].func);
@@ -112,6 +155,9 @@ function DrawUi(){
     for (const uiStaticComponent in uiStaticComponents) {
         uiStaticComponents[uiStaticComponent].Draw();
     }
+    for (const menuUpperButton in menuUpperButtons) {
+        menuUpperButtons[menuUpperButton].Draw();
+    }
     switch (currentPage) {
         case 0:
             for (const uiComponentPage0 in uiComponentsPage0) {
@@ -135,6 +181,19 @@ function ButtonPressed(mouseX, mouseY){
     // Checks if pressed on building
     CheckIfBuilding(mouseX, mouseY);
     // Checks if pressed on UI component
+    for (const menuUpperButton in menuUpperButtons) {
+        if(!fixButtonActive && menuUpperButtons[menuUpperButton].x < mouseX && menuUpperButtons[menuUpperButton].x + menuUpperButtons[menuUpperButton].width > mouseX &&
+            menuUpperButtons[menuUpperButton].y < mouseY && menuUpperButtons[menuUpperButton].y + menuUpperButtons[menuUpperButton].height > mouseY){
+            menuUpperButtons[menuUpperButton].func();
+            selectedBuilding.isSelected = false;
+            ResetVariablesSelectedBuilding();
+            return;
+        }
+        else if(fixButtonActive && CheckIfBuilding(mouseX, mouseY) !== undefined){
+            selectedVehiclesSoldiers = [];
+            CheckIfBuilding(mouseX, mouseY).recoverHp = true;
+        }
+    }
     for (const uiStaticComponent in uiStaticComponents) {
         if(uiStaticComponents[uiStaticComponent].tag == "uiButton" && uiStaticComponents[uiStaticComponent].x < mouseX && uiStaticComponents[uiStaticComponent].x + uiStaticComponents[uiStaticComponent].width > mouseX &&
         uiStaticComponents[uiStaticComponent].y < mouseY && uiStaticComponents[uiStaticComponent].y + uiStaticComponents[uiStaticComponent].height > mouseY){
@@ -333,32 +392,39 @@ function DisplaySelectedBuilding(src, width, height){
 };
 // Build building
 function Build(){
-    if(BuildingSoldierVehicleLimit(selectedBuilding.tag) >= selectedBuilding.limit){
-        informationText.push({string: "Building limit have been reached.", color: "red"});
-    }
-    else if(player.cash < selectedBuilding.cost){
-        informationText.push({string: "You don't have enough cash.", color: "red"});
+    if(CheckIfBuildingIsPresent("mainBuilding")){
+        if(BuildingSoldierVehicleLimit(selectedBuilding.tag) >= selectedBuilding.limit){
+            informationText.push({string: "Building limit have been reached.", color: "red"});
+        }
+        else if(player.cash < selectedBuilding.cost){
+            informationText.push({string: "You don't have enough cash.", color: "red"});
+        }
+        else{
+            const building = new BuildingObjects(selectedBuilding.src, selectedBuilding.width, selectedBuilding.height, mouseCurrentPosX + cameraX - selectedBuilding.width / 2, mouseCurrentPosY + cameraY - selectedBuilding.height / 2, selectedBuilding.tag, selectedBuilding.cost, selectedBuilding.limit, selectedBuilding.hp);
+            buildingLayer.push(building);
+            // Check if it's harvesting building if yes manufacture harvesting vehicle too
+            if(selectedBuilding.tag === "harvestingBuilding"){
+                const harvester = new Harvester("./images/vehicles/harvester01.png", building.x + 60, building.y, 60, 39, 1, 200, 3, "harvestingVehicle", building.x + 60, building.y);
+                harvester.Movement(300 + Math.random() * 100, 1200 + Math.random() * 100);
+                storedVehiclesSoldiers.push(harvester);
+                player.energyDemand += 15;
+            }
+            else if(selectedBuilding.tag === "solarPanel"){
+                player.availableEnergy += 10;
+            }
+            else if(selectedBuilding.tag !== "wall"){
+                player.energyDemand += 10;
+            }
+            player.cash -= selectedBuilding.cost;
+            selectedBuilding.isSelected = false;
+            ResetVariablesSelectedBuilding();
+            informationText.push({string: "Build!", color: "green"});
+        }
     }
     else{
-        const building = new BuildingObjects(selectedBuilding.src, selectedBuilding.width, selectedBuilding.height, mouseCurrentPosX + cameraX - selectedBuilding.width / 2, mouseCurrentPosY + cameraY - selectedBuilding.height / 2, selectedBuilding.tag, selectedBuilding.cost, selectedBuilding.limit, selectedBuilding.hp);
-        buildingLayer.push(building);
-        // Check if it's harvesting building if yes manufacture harvesting vehicle too
-        if(selectedBuilding.tag === "harvestingBuilding"){
-            const harvester = new Harvester("./images/vehicles/harvester01.png", building.x + 60, building.y, 60, 39, 1, 200, 3, "harvestingVehicle", building.x + 60, building.y);
-            harvester.Movement(300 + Math.random() * 100, 1200 + Math.random() * 100);
-            storedVehiclesSoldiers.push(harvester);
-            player.energyDemand += 15;
-        }
-        else if(selectedBuilding.tag === "solarPanel"){
-            player.availableEnergy += 10;
-        }
-        else if(selectedBuilding.tag !== "wall"){
-            player.energyDemand += 10;
-        }
-        player.cash -= selectedBuilding.cost;
         selectedBuilding.isSelected = false;
         ResetVariablesSelectedBuilding();
-        informationText.push({string: "Build!", color: "green"});
+        informationText.push({string: "You can't build new buildings without Main Building.", color: "red"});
     }
 };
 // Building button
@@ -465,8 +531,13 @@ function CheckIfBuilding(mouseX, mouseY){
                     }
                 }
             }
+            return buildingLayer[building];
         }
     }
+};
+// Fix button
+function FixBuildings(){
+    fixButtonActive = true;
 };
 // Reset selected building variables
 function ResetVariablesSelectedBuilding(){

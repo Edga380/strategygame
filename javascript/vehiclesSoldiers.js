@@ -15,6 +15,7 @@ class VehiclesSoldiers {
         this.height = height;
         this.speed = speed;
         this.hp = hp;
+        this.storeHp = hp;
         this.limit = limit;
         this.damage = damage;
         this.tag = tag;
@@ -49,6 +50,8 @@ class VehiclesSoldiers {
         ctx.rotate(this.rotateAngle);
         ctx.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
         ctx.restore();
+        // Draw hp bar
+        this.DisplayHpBar();
     };
     Movement(x, y){
         let dx = x - this.x;
@@ -75,6 +78,22 @@ class VehiclesSoldiers {
         };
         cancelAnimationFrame(this.storeAnimationFrame);
         MoveTowardsTarget();
+    };
+    DisplayHpBar(){
+        if(this.hp < this.storeHp){
+            let hpLeft = (this.hp * 100) / this.storeHp;
+            let hpToDisplay = (30 * hpLeft) / 100;
+            if(hpLeft > 66){
+                ctx.fillStyle = "green";
+            }
+            else if(hpLeft > 33){
+                ctx.fillStyle = "yellow";
+            }
+            else{
+                ctx.fillStyle = "red";
+            }
+            ctx.fillRect(this.x - cameraX + (this.width / 2) - 15, (this.y - cameraY + this.height / 2) - 5, hpToDisplay, 5);
+        }
     };
     CheckForEnemies(){
         this.checkForEnemiesInterval = setInterval(() => {
@@ -171,6 +190,7 @@ class Harvester {
         this.height = height;
         this.speed = speed;
         this.hp = hp;
+        this.storeHp = hp;
         this.limit = limit;
         this.tag = tag;
         this.storeAnimationFrame = null;
@@ -194,6 +214,7 @@ class Harvester {
         this.isSelected = false;
     };
     Draw (){
+        // If selected draw cicle around
         if(this.isSelected){
             ctx.beginPath();
             ctx.arc(this.x + this.width / 2 - cameraX, this.y + this.height / 2 - cameraY, this.width / 2, 0, 2 * Math.PI);
@@ -201,11 +222,14 @@ class Harvester {
             ctx.lineWidth = 3;
             ctx.stroke();
         }
+        // Draw harvester
         ctx.save();
         ctx.translate(this.x - cameraX + this.width / 2, this.y - cameraY + this.height / 2);
         ctx.rotate(this.rotateAngle);
         ctx.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
         ctx.restore();
+        // Draw hp bar
+        this.DisplayHpBar();
     };
     Movement(x, y){
         let dx = x - this.x;
@@ -240,6 +264,22 @@ class Harvester {
         };
         cancelAnimationFrame(this.storeAnimationFrame);
         MoveTowardsTarget();
+    };
+    DisplayHpBar(){
+        if(this.hp < this.storeHp){
+            let hpLeft = (this.hp * 100) / this.storeHp;
+            let hpToDisplay = (30 * hpLeft) / 100;
+            if(hpLeft > 66){
+                ctx.fillStyle = "green";
+            }
+            else if(hpLeft > 33){
+                ctx.fillStyle = "yellow";
+            }
+            else{
+                ctx.fillStyle = "red";
+            }
+            ctx.fillRect(this.x - cameraX + (this.width / 2) - 15, (this.y - cameraY + this.height / 2) - 5, hpToDisplay, 5);
+        }
     };
     // Harvester logic
     Harvest(){
