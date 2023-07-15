@@ -1,3 +1,4 @@
+// Canvas
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 // Map layout
@@ -77,62 +78,71 @@ let testingss = false;
 function DrawTileMap(){
     // Clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    // Calculate the starting and ending coordinates of the visible tiles based on the camera position and dimensions
     const startX = Math.floor(cameraX / tileWidth);
     const startY = Math.floor(cameraY / tileHeight);
     const endX = Math.ceil((cameraX + cameraWidth) / tileWidth);
     const endY = Math.ceil((cameraY + cameraHeight) / tileHeight);
-
+    // Loop through the visible tiles and draw them on the canvas
     for (let y = startY; y < endY; y++) {
         for (let x = startX; x < endX; x++) {
+            // Check if the tile coordinates are within the bounds of the tile map
             if (y >= 0 && y < timeMap01.length && x >= 0 && x < timeMap01[y].length) {
                 const tile = timeMap01[y][x];
                 const tileX = x * tileWidth - cameraX;
                 const tileY = y * tileHeight - cameraY;
-
+                // Calculate the position of the tile in the tile set image
                 const tileSetX = (tile % Math.floor(tileSet.width / tileWidth)) * tileWidth;
                 const tileSetY = Math.floor(tile / Math.floor(tileSet.width / tileWidth)) * tileHeight;
-
+                // Draw the tile on the canvas
                 ctx.drawImage(tileSet, tileSetX, tileSetY, tileWidth, tileHeight, tileX, tileY, tileWidth, tileHeight);
             }
         }
     }
-    // Draw oil puddle
+    // Draw oil puddles on specific coordinates of the canvas
     ctx.drawImage(oilPuddle, 200 - cameraX, 1100 - cameraY, 300, 261);
     ctx.drawImage(oilPuddle, 1700 - cameraX, 700 - cameraY, 300, 261);
 };
 // Draw built buildings
 function DrawBuiltBuilding(){
+    // Loop through buildingLayer
     for (const building in buildingLayer) {
+        // If array is not empty draw buildings from the array
         buildingLayer.length > 0 ? buildingLayer[building].Draw() : null;
     }
+    // Loop through enemyStoredBuildings
     for (const building in enemyStoredBuildings) {
+        // If array is not empty draw enemy buildings from the array
         enemyStoredBuildings.length > 0 ? enemyStoredBuildings[building].Draw() : null;
     }
 };
 // Draw soldiers / vehicles
 function DrawSoldiersVehicles(){
-    // Player army
+    // Loop through storedVehiclesSoldiers
     for (const storedVehicleSoldier in storedVehiclesSoldiers) {
-        storedVehiclesSoldiers.length > 0 ? storedVehiclesSoldiers[storedVehicleSoldier].Draw() : null;
+        // If array is not empty run Update function
+        storedVehiclesSoldiers.length > 0 ? storedVehiclesSoldiers[storedVehicleSoldier].Update() : null;
     }
-    // Enemy army
+    // Loop through enemyStoredVehiclesSoldiers
     for (const enemyStoredVehicleSoldier in enemyStoredVehiclesSoldiers) {
-        enemyStoredVehiclesSoldiers.length > 0 ? enemyStoredVehiclesSoldiers[enemyStoredVehicleSoldier].Draw() : null;
+        // If array is not empty run Update function
+        enemyStoredVehiclesSoldiers.length > 0 ? enemyStoredVehiclesSoldiers[enemyStoredVehicleSoldier].Update() : null;
     }
 };
 // Draw mini map
 function DrawMiniMap(){
+    // Loop through the visible tiles and draw them on the canvas
     for (let y = 0; y < timeMap01.length; y++) {
         for (let x = 0; x < timeMap01[0].length; x++) {
+            // Check if the tile coordinates are within the bounds of the tile map
             if (y >= 0 && y < timeMap01.length && x >= 0 && x < timeMap01[y].length) {
                 const tile = timeMap01[y][x];
                 const tileX = (x + 152) * miniMaptileWidth;
                 const tileY = (y + 22) * miniMaptileHeight;
-
+                // Calculate the position of the tile in the tile set image
                 const tileSetX = (tile % Math.floor(tileSet.width / tileWidth)) * tileWidth;
                 const tileSetY = Math.floor(tile / Math.floor(tileSet.width / tileWidth)) * tileHeight;
-
+                // Draw the tile on the canvas
                 ctx.drawImage(tileSet, tileSetX, tileSetY, tileWidth, tileHeight, tileX, tileY, miniMaptileWidth, miniMaptileHeight);
             }
         }
@@ -163,48 +173,69 @@ function DrawEnergy(){
 // Draw camera position on mini map
 function CameraPosOnMiniMap(){
     ctx.beginPath();
+    // Set style of the rect
     ctx.strokeStyle = "white";
+    // Draw rect 
     ctx.rect(760 + cameraX / 12, 110 + cameraY / 12.5, 80, 65);
     ctx.stroke();
 };
 // Start game
 function StartGame(){
+    // Check if game have started
     if(!startGame){
+        // Display images and text on canvas
         ctx.drawImage(startGameBg, 0, 0, 960, 720);
         ctx.drawImage(startButtonBg, 359, 517, 212, 46);
+        ctx.drawImage(startButtonBg, 730, 10, 212, 46);
         ctx.font = "30px Arial";
-        ctx.fillText("Start", 432 ,550);
+        ctx.fillText("Press to Start", 374 ,550);
+        ctx.fillText("Information", 760 ,45);
     }
 };
 // You win
 function YouWin(){
+    // Check if game started, enemyStoredBuildings and enemyStoredVehiclesSoldiers array is empty
     if(startGame && enemyStoredBuildings.length <= 0 && enemyStoredVehiclesSoldiers.length <= 0){
+        // Set youWin to true
         youWin = true;
+        // Clear the interval for enemy vawe attack so no more enemies would appear
         clearInterval(enemyVaweAttack);
+        // Set transparent black background to dim game area
         ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
         ctx.fillRect(0, 0, timeMap01.length * tileWidth, timeMap01.length * tileHeight);
+        // Draw you win background image
         ctx.drawImage(youWinBg, 180, 100, 600, 400);
+        // Draw button to play again
         ctx.drawImage(startButtonBg, 359, 517, 212, 46);
+        // Set text styling
         ctx.fillStyle = "white";
         ctx.strokeStyle = "white";
         ctx.font = "30px Arial";
+        // Draw play again and you win text
         ctx.fillText("Play again", 395 ,550);
         ctx.fillText("You win!", 420 ,140);
     }
 };
 // You lose
 function YouLose(){
+    // Check if game started, buildingLayer and storedVehiclesSoldiers array is empty
     if(startGame && buildingLayer.length <= 0 && storedVehiclesSoldiers.length <= 0){
+        // Set youLose to true
         youLose = true;
+        // Clear the interval for enemy vawe attack so no more enemies would appear
         clearInterval(enemyVaweAttack);
+        // Set transparent black background to dim game area
         ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
         ctx.fillRect(0, 0, timeMap01.length * tileWidth, timeMap01.length * tileHeight);
+        // Draw you lose background image
         ctx.drawImage(youWinBg, 180, 100, 600, 400);
         ctx.drawImage(startButtonBg, 359, 517, 212, 46);
+        // Set text styling
         ctx.fillStyle = "white";
         ctx.strokeStyle = "white";
         ctx.font = "30px Arial";
+        // Draw play again and you lose text
         ctx.fillText("Play again", 395 ,550);
-        ctx.fillText("You lose", 420 ,140);
+        ctx.fillText("You lose!", 420 ,140);
     }
 };

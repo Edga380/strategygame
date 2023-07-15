@@ -1,7 +1,5 @@
 // Game loop function
-function gameLoop() {
-
-// Render game objects here
+function gameLoop(){
 DrawTileMap();
 DrawBuiltBuilding();
 DrawSoldiersVehicles();

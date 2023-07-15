@@ -37,7 +37,7 @@ class VehiclesSoldiers {
         // If selected change variable
         this.isSelected = false;
     };
-    Draw (){
+    Update(){
         if(this.isSelected){
             ctx.beginPath();
             ctx.arc(this.x + this.width / 2 - cameraX, this.y + this.height / 2 - cameraY, this.width / 2, 0, 2 * Math.PI);
@@ -195,76 +195,111 @@ class Harvester {
         this.tag = tag;
         this.storeAnimationFrame = null;
         this.rotateAngle = 0;
-        // Explosion
+        // Movement
+        this.move = false;
+        this.moveToX = null;
+        this.MoveToY = null;
+        // Explosion variables
         this.explosionImage = new Image();
         this.explosionImage.src = "./images/animation/explosionSheet.png";
         this.explosionNum = 0;
         this.changeAnimationImg = -1;
         this.explosionAnimationFrame = null;
-        // Varaibles for harvesting vehicle
-        this.harvestingInterval = null;
-        this.harvesting = 0;
-        this.emptyHarvest = 0;
-        this.havestingDone = false;
-        this.emptyHarvestInterval = null;
+        // Variables for harvesting
         this.baseX = baseX;
         this.baseY = baseY;
+        this.emptyHarvest = false;
+        this.harvesting = false;
+        this.toggleHarvesting = false;
         this.harvest = 0;
         // If selected change variable
         this.isSelected = false;
     };
-    Draw (){
-        // If selected draw cicle around
-        if(this.isSelected){
-            ctx.beginPath();
-            ctx.arc(this.x + this.width / 2 - cameraX, this.y + this.height / 2 - cameraY, this.width / 2, 0, 2 * Math.PI);
-            ctx.strokeStyle = "rgba(0, 225, 46, 0.6)";
-            ctx.lineWidth = 3;
-            ctx.stroke();
-        }
+    Update(){
+        // Draw green circle around if selected
+        this.Selected();
         // Draw harvester
-        ctx.save();
-        ctx.translate(this.x - cameraX + this.width / 2, this.y - cameraY + this.height / 2);
-        ctx.rotate(this.rotateAngle);
-        ctx.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
-        ctx.restore();
+        this.Draw();
         // Draw hp bar
         this.DisplayHpBar();
+        // Display harvesting progress
+        this.DisplayHarvestProgress();
+        // Movement
+        this.Movement();
+        // Harvest
+        this.Harvest();
+        // Empty harvest
+        this.EmptyHarvest();
     };
-    Movement(x, y){
-        let dx = x - this.x;
-        let dy = y - this.y;
-        let angleInRadians = Math.atan2(dy, dx);
-        this.rotateAngle = angleInRadians;
-        let distance = Math.sqrt(dx * dx + dy * dy);
-        const MoveTowardsTarget = () => {
+    Movement(){
+        if(this.move){
+            let dx = this.moveToX - this.x; // Calculate distance x between current position x and target x
+            let dy = this.moveToY - this.y; // Calculate distance y between current position y and target y
+            let angleInRadians = Math.atan2(dy, dx);
+            this.rotateAngle = angleInRadians;
+            let distance = Math.sqrt(dx * dx + dy * dy);
             if (distance > this.speed) {
-              let ratio = this.speed / distance;
-              let moveX = dx * ratio;
-              let moveY = dy * ratio;
-              this.x += moveX;
-              this.y += moveY;
-              dx = x - this.x;
-              dy = y - this.y;
-              distance = Math.sqrt(dx * dx + dy * dy);
-              this.storeAnimationFrame = requestAnimationFrame(MoveTowardsTarget);
+                let ratio = this.speed / distance;
+                let moveX = dx * ratio;
+                let moveY = dy * ratio;
+                this.x += moveX;
+                this.y += moveY;
+                dx = this.moveToY - this.x;
+                dy = this.moveToY - this.y;
+                distance = Math.sqrt(dx * dx + dy * dy);
             }
             else{
-                this.x = x;
-                this.y = y;
-                // Logic for harvesting vehicle
-                if(this.tag == "harvestingVehicle" && !this.havestingDone && this.baseX !== null){
-                    this.Harvest();
+                this.x = this.moveToX;
+                this.y = this.moveToY;
+                this.move = false;
+                if(!this.emptyHarvest && this.toggleHarvesting && this.baseX !== null ){
+                    this.emptyHarvest = true;
                 }
-                else if(this.tag == "harvestingVehicle" && this.havestingDone && this.baseX !== null ){
-                    console.log(this.emptyHarvestInterval);
-                    this.EmptyHarvest();
+                else if(!this.harvesting && !this.toggleHarvesting && this.baseX !== null){
+                    this.harvesting = true;
                 }
             }
-        };
-        cancelAnimationFrame(this.storeAnimationFrame);
-        MoveTowardsTarget();
+        }
     };
+    Harvest(){
+        if(this.harvesting){
+            if(this.harvest < 2000){
+                this.harvest++;
+            }
+            else{
+                if(this.baseX !== null){
+                    this.moveToX = this.baseX;
+                    this.moveToY = this.baseY;
+                    this.move = true;
+                }
+                this.harvesting = false;
+                this.toggleHarvesting = true;
+            }
+        }
+    };
+    EmptyHarvest(){
+        if(this.emptyHarvest){
+            if(this.harvest > 0){
+                this.harvest--;
+                player.cash += 1;
+            }
+            else{              
+                this.moveToX = 300 + Math.random() * 100;
+                this.moveToY = 1200 + Math.random() * 100;
+                this.move = true;
+                this.emptyHarvest = false;
+                this.toggleHarvesting = false;
+            }
+        }
+    };
+    // Displays how muxh harvest left inside harvester
+    DisplayHarvestProgress(){
+        let harvestLeft = (this.harvest * 100) / 2000;
+        let harvestToDisplay = (30 * harvestLeft) / 100;
+        ctx.fillStyle = "white";
+        ctx.fillRect(this.x - cameraX + (this.width / 2) - 15, (this.y - cameraY) - 5, harvestToDisplay, 5);
+    };
+    // Hp bar show calculates % of how hp left and displays it
     DisplayHpBar(){
         if(this.hp < this.storeHp){
             let hpLeft = (this.hp * 100) / this.storeHp;
@@ -281,40 +316,7 @@ class Harvester {
             ctx.fillRect(this.x - cameraX + (this.width / 2) - 15, (this.y - cameraY + this.height / 2) - 5, hpToDisplay, 5);
         }
     };
-    // Harvester logic
-    Harvest(){
-        this.harvestingInterval = setInterval(() => {
-            if(this.harvest < 2000){
-                this.harvest++;
-            }
-            else{
-                clearInterval(this.harvestingInterval);
-                this.havestingDone = true;
-                if(this.baseX !== null){
-                    this.Movement(this.baseX, this.baseY);
-                }
-            }
-        }, 1);
-    };
-    StopHarvest(){
-        clearInterval(this.harvestingInterval);
-    };
-    EmptyHarvest(){
-        this.emptyHarvestInterval = setInterval(() => {
-            if(this.harvest > 0){
-                this.harvest--;
-                player.cash += 1;
-            }
-            else{
-                clearInterval(this.emptyHarvestInterval);
-                this.havestingDone = false;
-                this.Movement(300 + Math.random() * 100, 1200 + Math.random() * 100);
-            }
-        }, 1);
-    };
-    StopEmptyHarvest(){
-        clearInterval(this.emptyHarvestInterval);
-    };
+    // When destroyed runs explopsion animation
     Explosion(){
         if(this.explosionNum < 60){
             if(this.explosionNum % 10 === 0){
@@ -328,6 +330,24 @@ class Harvester {
             cancelAnimationFrame(this.explosionAnimationFrame);
         }
     };
+    // Draw havester
+    Draw(){
+        ctx.save();
+        ctx.translate(this.x - cameraX + this.width / 2, this.y - cameraY + this.height / 2);
+        ctx.rotate(this.rotateAngle);
+        ctx.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
+        ctx.restore();
+    }
+    // Draw circle around havester if selected
+    Selected(){
+        if(this.isSelected){
+            ctx.beginPath();
+            ctx.arc(this.x + this.width / 2 - cameraX, this.y + this.height / 2 - cameraY, this.width / 2, 0, 2 * Math.PI);
+            ctx.strokeStyle = "rgba(0, 225, 46, 0.6)";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+    };
 };
 // Move vehicles/soldiers to clicked mouse position
 function MoveVehicleSoldier(){
@@ -339,13 +359,15 @@ function MoveVehicleSoldier(){
             const x = col * (selectedVehiclesSoldiers[i].width + 10); // Calculate the x-coordinate
             const y = row * (selectedVehiclesSoldiers[i].height + 10); // Calculate the y-coordinate
             if(selectedVehiclesSoldiers[i].tag == "harvestingVehicle"){
-                    selectedVehiclesSoldiers[i].StopHarvest();
-                    selectedVehiclesSoldiers[i].StopEmptyHarvest();
-                    selectedVehiclesSoldiers[i].havestingDone = true;
-                    selectedVehiclesSoldiers[i].baseX = null;
-                    selectedVehiclesSoldiers[i].baseY = null;
-                    selectedVehiclesSoldiers[i].Movement(moveUnitTo[0].x = x + mouseCurrentPosX + cameraX, moveUnitTo[0].y = y + mouseCurrentPosY + cameraY);
-                    informationText.push({string: "Bring harvester to harvesting station to start harvesting again", color: "red"});
+                selectedVehiclesSoldiers[i].emptyHarvest = false;
+                selectedVehiclesSoldiers[i].harvesting = false;
+                selectedVehiclesSoldiers[i].toggleHarvesting = true;
+                selectedVehiclesSoldiers[i].baseX = null;
+                selectedVehiclesSoldiers[i].baseY = null;
+                selectedVehiclesSoldiers[i].moveToX = moveUnitTo[0].x = x + mouseCurrentPosX + cameraX;
+                selectedVehiclesSoldiers[i].moveToY = moveUnitTo[0].y = y + mouseCurrentPosY + cameraY;
+                selectedVehiclesSoldiers[i].move = true;
+                informationText.push({string: "Bring harvester to harvesting station to start harvesting again", color: "red"});
             }
             else{
                 selectedVehiclesSoldiers[i].Movement(moveUnitTo[0].x = x + mouseCurrentPosX + cameraX, moveUnitTo[0].y = y + mouseCurrentPosY + cameraY);

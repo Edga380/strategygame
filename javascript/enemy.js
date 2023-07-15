@@ -1,6 +1,22 @@
 // Enemy variables
-const enemy = {cash: 9000};
 let enemyVaweAttack = null;
+// Preset coordinates fro enemy army units to move to
+let coordinatesToMoveTo = [{x: 370, y: 150},{x: 520, y: 170},{x: 700, y: 160},{x: 520, y: 1100},{x: 350, y: 1250}];
+// Harvester variables
+let enemyHarvesterLimit = 3;
+let enemyHarvestRouteBase = 0;
+let enemyHarvestRoutePuddle = 0;
+// Harvester data
+let enemyHarvesterUnit = {src: "./images/vehicles/enemyHarvester01.png", x: 1500, y: 1560, width: 60, height: 39, speed: 1, hp: 200, limit: 3, damage: 0, tag: "enemyHarvester"};
+// Army units data
+let enemyArmyUnits = [
+    {src: "./images/vehicles/enemyTank01.png", x: 2160, y: 1800, width: 50, height: 41, speed: 1, hp: 100, limit: 12, damage: 12, tag: "enemyTank"},
+    {src: "./images/vehicles/enemyArmoredVehicle01.png", x: 2160, y: 1800, width: 45, height: 30, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/soldiers/enemySoldierRiffle.png", x: 2160, y: 1800, width: 26, height: 23, speed: 1, hp: 30, limit: 20, damage: 5, tag: "enemySoldierRiffle"},
+    {src: "./images/soldiers/enemySoldierRocket.png", x: 2160, y: 1800, width: 31, height: 23, speed: 1, hp: 30, limit: 20, damage: 10, tag: "enemysSoldierRocket"}
+];
+//
+let randomUnitNumber = 0;
 // Enemy base data
 const enemyBaseData = [
     {src: "./images/buildings/enemyMainBuilding.png", width: 90, height: 90, x: 1740, y: 1560, tag: "enemyMainBuilding", cost: 3000, limit: 1, hp: 200},
@@ -31,21 +47,42 @@ const enemyBaseData = [
     {src: "./images/buildings/enemyHarvestingBuilding.png", width: 105, height: 60, x: 1500, y: 1620, tag: "enemyHarvestingBuilding", cost: 2000, limit: 3, hp: 100},
     {src: "./images/buildings/enemyHarvestingBuilding.png", width: 105, height: 60, x: 1500, y: 1680, tag: "enemyHarvestingBuilding", cost: 2000, limit: 3, hp: 100}
 ];
+// Preset army unit data inside enemy base
 const enemyArmyData = [
-    {src: "./images/vehicles/enemyTank01.png", x: 1740, y: 1280, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1800, y: 1280, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1800, y: 1340, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1740, y: 1340, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1740, y: 1280, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank"},
+    {src: "./images/vehicles/enemyArmoredVehicle01.png", x: 1800, y: 1280, width: 45, height: 30, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/vehicles/enemyTank01.png", x: 1800, y: 1340, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank"},
+    {src: "./images/vehicles/enemyArmoredVehicle01.png", x: 1740, y: 1340, width: 45, height: 30, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
     //
-    {src: "./images/vehicles/enemyTank01.png", x: 1880, y: 1580, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1880, y: 1640, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1940, y: 1580, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1940, y: 1640, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
+    {src: "./images/vehicles/enemyTank01.png", x: 1880, y: 1580, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank"},
+    {src: "./images/vehicles/enemyTank01.png", x: 1880, y: 1640, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank"},
+    {src: "./images/vehicles/enemyTank01.png", x: 1940, y: 1580, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank"},
+    {src: "./images/vehicles/enemyTank01.png", x: 1940, y: 1640, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank"},
     //
-    {src: "./images/vehicles/enemyTank01.png", x: 1640, y: 1100, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1600, y: 1180, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1500, y: 1220, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000},
-    {src: "./images/vehicles/enemyTank01.png", x: 1460, y: 1300, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank", cost: 2000}
+    {src: "./images/vehicles/enemyTank01.png", x: 1640, y: 1100, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank"},
+    {src: "./images/vehicles/enemyTank01.png", x: 1600, y: 1180, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank"},
+    {src: "./images/vehicles/enemyTank01.png", x: 1500, y: 1220, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank"},
+    {src: "./images/vehicles/enemyTank01.png", x: 1460, y: 1300, width: 50, height: 41, speed: 1, hp: 100, limit: 3, damage: 12, tag: "enemyTank"},
+    //
+    {src: "./images/vehicles/enemyArmoredVehicle01.png", x: 1600, y: 1260, width: 45, height: 30, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/vehicles/enemyArmoredVehicle01.png", x: 1560, y: 1320, width: 45, height: 30, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/vehicles/enemyArmoredVehicle01.png", x: 1500, y: 1400, width: 45, height: 30, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/vehicles/enemyArmoredVehicle01.png", x: 1600, y: 1900, width: 45, height: 30, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    //
+    {src: "./images/soldiers/enemySoldierRocket.png", x: 1560, y: 1860, width: 31, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/soldiers/enemySoldierRocket.png", x: 1500, y: 1800, width: 31, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/soldiers/enemySoldierRocket.png", x: 1480, y: 1840, width: 31, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/soldiers/enemySoldierRocket.png", x: 1400, y: 1820, width: 31, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    //
+    {src: "./images/soldiers/enemySoldierRocket.png", x: 1560, y: 1920, width: 31, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/soldiers/enemySoldierRocket.png", x: 1500, y: 1980, width: 31, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/soldiers/enemySoldierRocket.png", x: 1480, y: 1900, width: 31, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/soldiers/enemySoldierRocket.png", x: 1400, y: 1870, width: 31, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    //
+    {src: "./images/soldiers/enemySoldierRiffle.png", x: 1660, y: 1720, width: 26, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/soldiers/enemySoldierRiffle.png", x: 1630, y: 1670, width: 26, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/soldiers/enemySoldierRiffle.png", x: 1670, y: 1640, width: 26, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"},
+    {src: "./images/soldiers/enemySoldierRiffle.png", x: 1640, y: 1600, width: 26, height: 23, speed: 2, hp: 70, limit: 15, damage: 6, tag: "enemyArmoredVehicle"}
 ];
 
 // Enemy Vehicle / Soldier variables
@@ -81,7 +118,7 @@ class EnemyVehiclesSoldiers {
         this.changeAnimationImg = -1;
         this.explosionAnimationFrame = null;
     };
-    Draw (){
+    Update(){
         // Draw unit
         ctx.save();
         ctx.translate(this.x - cameraX + this.width / 2, this.y - cameraY + this.height / 2);
@@ -185,7 +222,14 @@ class EnemyVehiclesSoldiers {
             for (let i = 0; i < storedVehiclesSoldiers.length; i++) {
                 if(enemyTarget.x === storedVehiclesSoldiers[i].x && enemyTarget.y === storedVehiclesSoldiers[i].y){
                     storedVehiclesSoldiers[i].Explosion();
-                    storedVehiclesSoldiers[i].tag === "harvestingVehicle" ? (storedVehiclesSoldiers[i].StopHarvest(), storedVehiclesSoldiers[i].StopEmptyHarvest()) : storedVehiclesSoldiers[i].StopEnemyCheck();
+                    if(storedVehiclesSoldiers[i].tag === "harvestingVehicle"){
+                        storedVehiclesSoldiers[i].move = false;
+                        storedVehiclesSoldiers[i].emptyHarvest = false;
+                        storedVehiclesSoldiers[i].harvesting = false;
+                    }
+                    else{
+                        storedVehiclesSoldiers[i].StopEnemyCheck();
+                    }
                     storedVehiclesSoldiers.splice(i, 1);
                 }
             }
@@ -196,6 +240,15 @@ class EnemyVehiclesSoldiers {
                             player.energyDemand -= 20
                             break;
                         case "harvestingBuilding":
+                            for (const unit in storedVehiclesSoldiers) {
+                                if(storedVehiclesSoldiers[unit].baseX === buildingLayer[i].x + 60 && storedVehiclesSoldiers[unit].baseY === buildingLayer[i].y){
+                                    storedVehiclesSoldiers[unit].emptyHarvest = false;
+                                    storedVehiclesSoldiers[unit].harvesting = false;
+                                    storedVehiclesSoldiers[unit].toggleHarvesting = true;
+                                    storedVehiclesSoldiers[unit].baseX = null;
+                                    storedVehiclesSoldiers[unit].baseY = null;
+                                }
+                            }
                             player.energyDemand -= 15
                             break;
                         case "vehicleFactory":
@@ -240,6 +293,115 @@ class EnemyVehiclesSoldiers {
             cancelAnimationFrame(this.explosionAnimationFrame);
         }
     };
+};// Harvester class
+class EnemyHarvester {
+    constructor(src, x, y, width, height, speed, hp, limit, tag, baseX, baseY, moveToX, moveToY){
+        this.image = new Image();
+        this.image.src = src;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.speed = speed;
+        this.hp = hp;
+        this.storeHp = hp;
+        this.limit = limit;
+        this.tag = tag;
+        this.storeAnimationFrame = null;
+        this.rotateAngle = 0;
+        // Movement
+        this.move = false;
+        this.moveToX = moveToX;
+        this.moveToY = moveToY;
+        // Explosion variables
+        this.explosionImage = new Image();
+        this.explosionImage.src = "./images/animation/explosionSheet.png";
+        this.explosionNum = 0;
+        this.changeAnimationImg = -1;
+        this.explosionAnimationFrame = null;
+        // Variables for harvesting
+        this.baseX = baseX;
+        this.baseY = baseY;
+        this.currentGoalX = this.moveToX;
+        this.currentGoalY = this.moveToY;
+        this.toggleMove = false;
+    };
+    Update(){
+        // Draw harvester
+        this.Draw();
+        // Draw hp bar
+        this.DisplayHpBar();
+        // Movement
+        this.Movement();
+    };
+    Movement(){
+        if(this.move){
+            let dx = this.currentGoalX - this.x; // Calculate distance x between current position x and target x
+            let dy = this.currentGoalY - this.y; // Calculate distance y between current position y and target y
+            let angleInRadians = Math.atan2(dy, dx);
+            this.rotateAngle = angleInRadians;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance > this.speed) {
+                let ratio = this.speed / distance;
+                let moveX = dx * ratio;
+                let moveY = dy * ratio;
+                this.x += moveX;
+                this.y += moveY;
+                dx = this.currentGoalX - this.x;
+                dy = this.currentGoalY - this.y;
+                distance = Math.sqrt(dx * dx + dy * dy);
+            }
+            else if(!this.toggleMove){
+                this.currentGoalX = this.baseX;
+                this.currentGoalY = this.baseY;
+                this.toggleMove = true;
+            }
+            else{
+                this.currentGoalX = this.moveToX;
+                this.currentGoalY = this.moveToY;
+                this.toggleMove = false;
+            }
+        }
+    };
+    // Hp bar show calculates % of how hp left and displays it
+    DisplayHpBar(){
+        if(this.hp < this.storeHp){
+            let hpLeft = (this.hp * 100) / this.storeHp;
+            let hpToDisplay = (30 * hpLeft) / 100;
+            if(hpLeft > 66){
+                ctx.fillStyle = "green";
+            }
+            else if(hpLeft > 33){
+                ctx.fillStyle = "yellow";
+            }
+            else{
+                ctx.fillStyle = "red";
+            }
+            ctx.fillRect(this.x - cameraX + (this.width / 2) - 15, (this.y - cameraY + this.height / 2) - 5, hpToDisplay, 5);
+        }
+    };
+    // When destroyed runs explopsion animation
+    Explosion(){
+        if(this.explosionNum < 60){
+            if(this.explosionNum % 10 === 0){
+                this.changeAnimationImg++;
+            }
+            ctx.drawImage(this.explosionImage, this.changeAnimationImg * 240, 0, 240, 240, this.x - cameraX, this.y - cameraY, this.width, this.width);
+            this.explosionNum++;
+            this.explosionAnimationFrame = requestAnimationFrame(this.Explosion.bind(this));
+        }
+        else{
+            cancelAnimationFrame(this.explosionAnimationFrame);
+        }
+    };
+    // Draw havester
+    Draw(){
+        ctx.save();
+        ctx.translate(this.x - cameraX + this.width / 2, this.y - cameraY + this.height / 2);
+        ctx.rotate(this.rotateAngle);
+        ctx.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
+        ctx.restore();
+    }
 };
 // Load enemy base
 function LoadEnemyBase(){
@@ -256,14 +418,71 @@ function LoadEnemyArmy(){
         vehicleOrSoldier.CheckForEnemies();
         enemyStoredVehiclesSoldiers.push(vehicleOrSoldier);
     }
+    // Instantiate set number of harvesters
+    while(enemyHarvesterLimit > 0){
+        const harvester = new EnemyHarvester(enemyHarvesterUnit.src, enemyHarvesterUnit.x, enemyHarvesterUnit.y + enemyHarvestRouteBase, enemyHarvesterUnit.width, enemyHarvesterUnit.height, enemyHarvesterUnit.speed, enemyHarvesterUnit.hp, enemyHarvesterUnit.limit, enemyHarvesterUnit.tag, 1500 + 60, 1560 + enemyHarvestRouteBase, 1900 - enemyHarvestRoutePuddle, 800);
+        harvester.move = true;
+        // Offset it's coordintes
+        enemyHarvestRouteBase += 60;
+        enemyHarvestRoutePuddle += 30;
+        // Push to array
+        enemyStoredVehiclesSoldiers.push(harvester);
+        enemyHarvesterLimit--;
+    }
 };
+// Enemy attacks player to preset coordinates
+// When all player buildings destroyed it start to go to coordintes if there is any player army units left
 function AttackPlayer(){
+    // Check if game still ongoing
     if(!youWin && !youLose){
         enemyVaweAttack = setInterval(() => {
-                const vehicleOrSoldier = new EnemyVehiclesSoldiers("./images/vehicles/enemyTank01.png", 2100, 1800, 50, 41, 1, 100, 10, 12, "enemyTank");
-                vehicleOrSoldier.CheckForEnemies();
-                vehicleOrSoldier.Movement(300, 150);
-                enemyStoredVehiclesSoldiers.push(vehicleOrSoldier);
+                // Randomly choose coordinates from preset coordinates array
+                let randomCoordinates = Math.floor(Math.random() * ((coordinatesToMoveTo.length + 0) - 0) + 0);
+                // Randomly choose army unit 
+                let randomArmyUnit = Math.floor(Math.random() * ((enemyArmyUnits.length + 0) - 0) + 0);
+                // Check selected army unit by its tag
+                switch (enemyArmyUnits[randomArmyUnit].tag) {
+                    // Assign random amount of units
+                    case "enemyTank":
+                        randomUnitNumber = Math.floor(Math.random() * ((3 + 1) - 0) + 0);
+                        break;
+                    case "enemyArmoredVehicle":
+                        randomUnitNumber = Math.floor(Math.random() * ((4 + 1) - 0) + 0);
+                        break;
+                    case "enemySoldierRiffle":
+                        randomUnitNumber = Math.floor(Math.random() * ((8 + 3) - 0) + 0);
+                        break;
+                    case "enemysSoldierRocket":
+                        randomUnitNumber = Math.floor(Math.random() * ((6 + 3) - 0) + 0);
+                        break;
+                }
+                // Loop as many times as random unit number is set
+                for (let i = 0; i < randomUnitNumber; i++) {
+                    // Store new vehicle/soldier object
+                    const vehicleOrSoldier = new EnemyVehiclesSoldiers(enemyArmyUnits[randomArmyUnit].src, enemyArmyUnits[randomArmyUnit].x, enemyArmyUnits[randomArmyUnit].y + Math.floor(Math.random() * ((120 + 1) - 0) + 0), enemyArmyUnits[randomArmyUnit].width, enemyArmyUnits[randomArmyUnit].height, enemyArmyUnits[randomArmyUnit].speed, enemyArmyUnits[randomArmyUnit].hp, enemyArmyUnits[randomArmyUnit].limit, enemyArmyUnits[randomArmyUnit].damage, enemyArmyUnits[randomArmyUnit].tag);
+                    // Call stored object function "CheckForenemies()" to start checking if there is any enmies in range
+                    vehicleOrSoldier.CheckForEnemies();
+                    // If building layer array is not empty move to preset coordinates
+                    if(buildingLayer.length > 0){
+                        // Coordinates are preset but there is random number added to randomise units position on map
+                        vehicleOrSoldier.Movement(coordinatesToMoveTo[randomCoordinates].x + Math.floor(Math.random() * ((120 + 0) - 0) + 0), coordinatesToMoveTo[randomCoordinates].y + Math.floor(Math.random() * ((120 + 1) - 0) + 0));
+                    }
+                    // If there is no more buildings check if there is any army units left
+                    else if(storedVehiclesSoldiers.length > 0){
+                        // Loop through player stored vehicles/soldiers to find out there coordinates
+                        for (const storedVehicleSoldier in storedVehiclesSoldiers) {
+                            // Move to vehicle/soldier coordinates
+                            vehicleOrSoldier.Movement(storedVehiclesSoldiers[storedVehicleSoldier].x, storedVehiclesSoldiers[storedVehicleSoldier].y);
+                        }
+                    }
+                    // If there is no buildings left or army units return
+                    else{
+                        return;
+                    }
+                    // Push new enemy army unit to enemy stored vehicles/soldiers array
+                    enemyStoredVehiclesSoldiers.push(vehicleOrSoldier);
+                }
+        // Set interval time between calls
         }, 50000);
     }
 };
