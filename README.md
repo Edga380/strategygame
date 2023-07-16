@@ -3,10 +3,9 @@ Earth needs more resources to sustain mankind. After finding a planet with a lot
 on the planet and harvesting its resources they encounter a species that have been harvesting it too, so the fight for resources begins.
 
 # Why did I choose this type of game?
-I got inspired to develop this code of game because when I was little kid I went to my friends place he had new sega genesis 2 and a game called "Dune".
-I loved to play that game somuch that I spend hours playing it. Later on in my life I found out that there is a new version of this game on PC. I had to
-try it out. After trying it I got hooked again and played it a lot. These days I dont play it that often anymore maybe once in two three years but thats 
-the story how I got an idea to make this type of game.
+I got inspired to develop this kind of game because when I was a little kid I went to my friend's house and he had new sega genesis 2 and a game called "Dune".
+I loved to play that game so much that I spent hours playing it. Later on in my life I found out that there was a new version of this game on PC. I had to
+try it out. After trying it I got hooked again and played it a lot. These days I don't play it that often anymore but that's the story on how I got the idea to make this type of game.
 
 # How to play?
 ![](https://edga380.github.io/projectgallery/images/gallery1800x1800/information01.png "Strategy game information")
@@ -14,11 +13,11 @@ the story how I got an idea to make this type of game.
 # Mouse controls
   ### Left mouse button:
     * UI navigation
-    * When press, hold and drag rectangle is being drawn to select army units.
+    * When clicked, hold and drag a rectangle is drawn to select army units.
     * Selected army units can be moved by clicking anywhere on the map.
     * When clicked on enemy building selected army units will attack it.
   ### Right mouse button:
-    * Map movement on hold.
+    * You move the map by holding this button and moving the mouse.
     * Cancel selected building.
     * Cancel Fix/Sell building.
 
@@ -53,7 +52,7 @@ the story how I got an idea to make this type of game.
 ![](https://edga380.github.io/projectgallery/images/gallery1800x1800/harvestingBuilding.png "Harvesting building")
 
     * Cost - 3000.
-    * If player have sufficient energy when build harvester will be manufactured as well.
+    * If player has sufficient energy when building, harvester will be manufactured as well.
     * Limit - 3.
     * Hp - 100.
     
@@ -96,7 +95,7 @@ the story how I got an idea to make this type of game.
 
     * Cost - 2000.
     * Automatically starts harvesting.
-    * If you had to move harvester to make it harvest again you must select it and press on any "Harvesting depot" it 
+    * If you had to move harvester to make it harvest again, you must select it and press on any "Harvesting depot" and it 
     will automatically start harvesting again.
     * Limit - 3.
     * Hp - 200.
@@ -124,12 +123,12 @@ the story how I got an idea to make this type of game.
 ### Oil:
 ![](https://edga380.github.io/projectgallery/images/gallery1800x1800/oilHarvest01.png "Oil puddle")
 
-    * Gather to gain cash in game.
+    * Harvest to gain cash in game.
 
 # Tips
 
-    * Be quick at the begining of the game.
-    * First build harvest depot second vehicle factory.
-    * Follow your energy needs if energy usage higher than available energy you will be not able to 
-    train soldiers or manufacture vehicle.
-    * Protect your "Harvesters" enemy can attack them at any time.
+    * Be quick at the beginning of the game.
+    * First build "Harvest depot", second "Vehicle factory".
+    * Follow your energy needs if energy usage is higher than available energy. You will not be able to 
+    train soldiers or manufacture vehicles.
+    * Protect your "Harvesters". The enemy can attack them at any time.
