@@ -81,11 +81,10 @@ class BuildingObjects {
         // After explosionNum is more than 60 stop running animation
         else{
             cancelAnimationFrame(this.explosionAnimationFrame);
-            // Check fo solar panel
-
-
-
-            
+            // Check for solar panel and deduct available energy value
+            if(this.tag === "solarPanel"){
+                player.availableEnergy -= 10;
+            }
             // Check if it's enemy building or not
             if(this.tag.includes("enemy")){
                 endGameStatictics.enemyBuildingsDestroy++;
@@ -548,11 +547,17 @@ function Build(){
             buildingLayer.push(building);
             // Check if it's harvesting building if yes manufacture harvesting vehicle too
             if(selectedBuilding.tag === "harvestingBuilding"){
-                const harvester = new Harvester("./images/vehicles/harvester01.png", building.x + 60, building.y, 60, 39, 1, 200, 3, "harvestingVehicle", building.x + 60, building.y);
-                harvester.moveToX = 300 + Math.random() * 100;
-                harvester.moveToY = 1200 + Math.random() * 100;
-                harvester.move = true;
-                storedVehiclesSoldiers.push(harvester);
+                // Check harvester limit
+                if(BuildingSoldierVehicleLimit("harvestingVehicle") >= selectedBuilding.limit){
+                    informationText.push({string: "Harvester limit have been reached.", color: "red"});
+                }
+                else{
+                    const harvester = new Harvester("./images/vehicles/harvester01.png", building.x + 60, building.y, 60, 39, 1, 200, 3, "harvestingVehicle", building.x + 60, building.y);
+                    harvester.moveToX = 300 + Math.random() * 100;
+                    harvester.moveToY = 1200 + Math.random() * 100;
+                    harvester.move = true;
+                    storedVehiclesSoldiers.push(harvester);
+                }
                 player.energyDemand += 15;
             }
             else if(selectedBuilding.tag === "solarPanel"){
