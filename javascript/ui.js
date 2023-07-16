@@ -81,6 +81,18 @@ class BuildingObjects {
         // After explosionNum is more than 60 stop running animation
         else{
             cancelAnimationFrame(this.explosionAnimationFrame);
+            // Check fo solar panel
+
+
+
+            
+            // Check if it's enemy building or not
+            if(this.tag.includes("enemy")){
+                endGameStatictics.enemyBuildingsDestroy++;
+            }
+            else{
+                endGameStatictics.playerBuildingsDestroy++;
+            }
         }
     };
     DisplayHpBar(){
@@ -482,6 +494,7 @@ function TrainingManufacturing(src, x, y, width, height, speed, hp, limit, damag
         }
         // Deduct cost from player cash
         player.cash -= cost;
+        endGameStatictics.totalCash += cost;
         // Display different text message if soldier or vehicle
         tag === "soldier" ? informationText.push({string: "Training.", color: "green"}) : informationText.push({string: "Manufacturing.", color: "green"});
     }
@@ -549,6 +562,8 @@ function Build(){
                 player.energyDemand += 10;
             }
             player.cash -= selectedBuilding.cost;
+            // Add statictics
+            endGameStatictics.totalCash += selectedBuilding.cost;
             selectedBuilding.isSelected = false;
             ResetVariablesSelectedBuilding();
             informationText.push({string: "Build!", color: "green"});

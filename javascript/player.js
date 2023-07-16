@@ -1,5 +1,7 @@
 // Player variables
 const player = {cash: 15000, energyDemand: 0, availableEnergy: 0};
+// End game statistics
+let endGameStatictics = {totalCash: 0, playerVehiclesDestroyed: 0, enemyVehiclesDestroyed: 0, playerBuildingsDestroy: 0, enemyBuildingsDestroy: 0};
 // Player base data
 const playerBaseData = [
 {src: "./images/buildings/solarPanel.png", width: 32, height: 32, x: 328, y: 0, tag: "solarPanel", cost: 800, limit: 10, hp: 50},
@@ -13,7 +15,18 @@ function DisplayPlayerCash(){
     ctx.fillStyle = "white";
     ctx.font = "25px Arial";
     // Display text at specific coordinates on canvas
-    ctx.fillText("" + player.cash, 820, 90);
+    ctx.fillText("$" + player.cash, 820, 90);
+};
+// Display end game statistics
+function EndGameStatistics(){
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial";
+    // Display text at specific coordinates on canvas
+    ctx.fillText("Total spent cash: " + endGameStatictics.totalCash, 200, 210);
+    ctx.fillText("Destroyed player buildings: " + endGameStatictics.playerBuildingsDestroy, 200, 260);
+    ctx.fillText("Destroyed player army units: " + endGameStatictics.playerVehiclesDestroyed, 200, 310);
+    ctx.fillText("Destroyed enemy buildings: " + endGameStatictics.enemyBuildingsDestroy, 200, 360);
+    ctx.fillText("Destroyed enemy army units: " + endGameStatictics.enemyVehiclesDestroyed, 200, 410);
 };
 // Load player base
 function LoadPlayerBase(){

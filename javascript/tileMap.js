@@ -237,5 +237,7 @@ function YouLose(){
         // Draw play again and you lose text
         ctx.fillText("Play again", 395 ,550);
         ctx.fillText("You lose!", 420 ,140);
+        // Display end game statistics
+        EndGameStatistics();
     }
 };

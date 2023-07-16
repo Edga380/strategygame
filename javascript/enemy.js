@@ -291,6 +291,7 @@ class EnemyVehiclesSoldiers {
         }
         else{
             cancelAnimationFrame(this.explosionAnimationFrame);
+            endGameStatictics.enemyVehiclesDestroyed++;
         }
     };
 };// Harvester class
@@ -392,6 +393,7 @@ class EnemyHarvester {
         }
         else{
             cancelAnimationFrame(this.explosionAnimationFrame);
+            endGameStatictics.enemyVehiclesDestroyed++;
         }
     };
     // Draw havester

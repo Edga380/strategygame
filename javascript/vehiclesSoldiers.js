@@ -176,6 +176,7 @@ class VehiclesSoldiers {
         }
         else{
             cancelAnimationFrame(this.explosionAnimationFrame);
+            endGameStatictics.playerVehiclesDestroyed++;
         }
     };
 };
@@ -328,6 +329,7 @@ class Harvester {
         }
         else{
             cancelAnimationFrame(this.explosionAnimationFrame);
+            endGameStatictics.playerVehiclesDestroyed++;
         }
     };
     // Draw havester
