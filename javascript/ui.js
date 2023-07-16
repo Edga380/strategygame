@@ -683,9 +683,9 @@ function CheckIfBuilding(mouseX, mouseY){
                     if(selectedVehiclesSoldiers[unit].tag === "harvestingVehicle"){
                         selectedVehiclesSoldiers[unit].baseX = buildingLayer[building].x + selectedVehiclesSoldiers[unit].width;
                         selectedVehiclesSoldiers[unit].baseY = buildingLayer[building].y
-                        selectedVehiclesSoldiers[i].emptyHarvest = false
-                        selectedVehiclesSoldiers[i].toggleHarvesting = true
-                        selectedVehiclesSoldiers[i].harvesting = false;
+                        selectedVehiclesSoldiers[unit].emptyHarvest = false
+                        selectedVehiclesSoldiers[unit].toggleHarvesting = true
+                        selectedVehiclesSoldiers[unit].harvesting = false;
                     }
                 }
             }
