@@ -136,7 +136,9 @@ class VehiclesSoldiers {
         if(enemyTarget.hp <= 0){
             for (let i = 0; i < enemyStoredVehiclesSoldiers.length; i++) {
                 if(enemyTarget.x === enemyStoredVehiclesSoldiers[i].x && enemyTarget.y === enemyStoredVehiclesSoldiers[i].y){
-                    enemyStoredVehiclesSoldiers[i].StopEnemyCheck();
+                    if(enemyStoredVehiclesSoldiers[i].tag !== "enemyHarvester"){
+                        enemyStoredVehiclesSoldiers[i].StopEnemyCheck();
+                    }
                     enemyStoredVehiclesSoldiers[i].Explosion();
                     enemyStoredVehiclesSoldiers.splice(i, 1);
                 }
