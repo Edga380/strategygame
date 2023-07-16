@@ -1,5 +1,5 @@
 // Player variables
-const player = {cash: 9000, energyDemand: 0, availableEnergy: 0};
+const player = {cash: 15000, energyDemand: 0, availableEnergy: 0};
 // Player base data
 const playerBaseData = [
 {src: "./images/buildings/solarPanel.png", width: 32, height: 32, x: 328, y: 0, tag: "solarPanel", cost: 800, limit: 10, hp: 50},

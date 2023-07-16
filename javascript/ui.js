@@ -265,8 +265,11 @@ function ButtonPressed(mouseX, mouseY){
                                 storedVehiclesSoldiers[unit].emptyHarvest = false;
                             }
                         }
-                        // Check building tag and reduce energy demand
-                        if(buildingLayer[i].tag === "harvestingBuilding"){
+                        // Check building tag and reduce energy demand or available energy if tag is "solarPanel"
+                        if(buildingLayer[i].tag === "solarPanel"){
+                            player.availableEnergy -= 10;
+                        }
+                        else if(buildingLayer[i].tag === "harvestingBuilding"){
                             player.energyDemand -= 15;
                         }
                         else if(buildingLayer[i].tag === "vehicleFactory"){
